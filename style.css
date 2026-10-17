@@ -1650,3 +1650,10 @@ body {
     flex-shrink: 0;
   }
 }
+
+/* Remove radar legend and flight note */
+.radar-legend,
+.learning-tip {
+  display: none !important;
+}
+
