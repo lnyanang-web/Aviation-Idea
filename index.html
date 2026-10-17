@@ -48,11 +48,11 @@
   <main class="tower-console" aria-label="Air traffic control tower workstation">
     <div class="monitor-bank">
       <section class="monitor monitor-radar" aria-labelledby="radar-monitor-label">
-        <div class="monitor-label" id="radar-monitor-label"><span>01</span> SURVEILLANCE RADAR</div>
+        <div class="monitor-label" id="radar-monitor-label"><span>01</span>RADAR</div>
         <div class="monitor-screen">
     <section class="radar-card" aria-labelledby="radar-title" data-tutorial="radar">
       <div class="radar-heading">
-        <div><p class="eyebrow">TRAINING SECTOR · ALL TRAFFIC SIMULATED</p><h1 id="radar-title">Airspace radar <span class="scope-live"><i></i> ACTIVE</span></h1></div>
+        <div><h1 id="radar-title">Radar<span class="scope-live"><i></i> ACTIVE</span></h1></div>
         <div class="radar-meta"><span>SIM <strong id="sim-clock">00:00</strong></span><label>RATE <select id="speed-select" aria-label="Simulation speed"><option value="15">15×</option><option value="30" selected>30×</option><option value="60">60×</option></select></label><label>RANGE <select id="radar-range" aria-label="Radar range"><option value="20">20 NM</option><option value="40" selected>40 NM</option><option value="60">60 NM</option></select></label></div>
       </div>
       <div class="radar-wrap">
@@ -78,18 +78,18 @@
       </section>
 
       <section class="monitor monitor-operations" aria-labelledby="operations-monitor-label">
-        <div class="monitor-label" id="operations-monitor-label"><span>02</span> DEPARTURE CONTROL</div>
+        <div class="monitor-label" id="operations-monitor-label"><span>02</span>OPERATIONS</div>
         <div class="monitor-screen operations-screen">
       <section class="panel traffic-panel" data-tutorial="traffic">
-        <div class="panel-heading"><div><p class="eyebrow">ACTIVE AIRCRAFT</p><h2>Flight list <span id="aircraft-count">0 / 4</span></h2></div><span class="threshold-tag">LOCAL TRAFFIC<br>MAX 4</span></div>
+        <div class="panel-heading"><div><p class="eyebrow">Flights</p><h2>Flight list <span id="aircraft-count">0 / 4</span></h2></div><span class="threshold-tag">LOCAL TRAFFIC<br>MAX 4</span></div>
         <div class="traffic-list" id="traffic-list" role="listbox" aria-label="Select aircraft"></div>
         <div class="selected-detail" id="selected-detail" aria-live="polite"></div>
       </section>
 
       <section class="panel flight-actions-panel" data-tutorial="flight-actions">
-        <div class="panel-heading small-heading"><div><p class="eyebrow">FLIGHT CONTROL</p><h2>Selected aircraft</h2></div></div>
+        <div class="panel-heading small-heading"><div><p class="eyebrow">Controls</p><h2>Flight controls</h2></div></div>
         <div class="aircraft-actions" id="aircraft-actions" aria-label="Available actions for the selected aircraft"></div>
-        <p class="action-feedback" id="action-feedback" aria-live="polite">Select an aircraft, then choose an available action.</p>
+        <p class="action-feedback" id="action-feedback" aria-live="polite">Select a flight./p>
       </section>
       <section class="weather-strip" aria-label="Simulated weather" data-tutorial="weather">
       <div><span>WEATHER</span><strong id="weather-condition">CLEAR</strong></div>
@@ -98,7 +98,7 @@
       <p id="weather-warning" aria-live="polite">No active weather advisories.</p>
       </section>
       <section class="panel sustainability-panel" data-tutorial="sustainability">
-        <div class="panel-heading small-heading"><div><p class="eyebrow">SUSTAINABILITY · ESTIMATES</p><h2>Today's operation</h2></div></div>
+        <div class="panel-heading small-heading"><div><p class="eyebrow">ESTIMATES</p><h2>Flight totals</h2></div></div>
         <div class="sustainability-mini">
           <div><span>DISTANCE</span><strong id="total-distance">0.0 NM</strong></div>
           <div><span>EST. FUEL</span><strong id="total-fuel">0 kg</strong></div>
