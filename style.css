@@ -915,11 +915,6 @@ body {
   font-size: 11px;
 }
 
-/* Remove decorative tower scenery and desk illustration */
-.tower-room,
-.tower-desk {
-  display: none !important;
-}
 
 /* Compact, flat top navigation */
 .topbar {
