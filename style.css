@@ -1703,3 +1703,37 @@ body {
   box-shadow: none !important;
   max-width: 240px;
 }
+
+/* Compact labels and headings */
+.radar-heading h1 {
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0;
+}
+
+.panel-heading h2 {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0;
+}
+
+.radar-heading .eyebrow,
+.panel-heading .eyebrow {
+  display: none;
+}
+
+.monitor-label {
+  font-size: 8px;
+  letter-spacing: 0.5px;
+}
+
+.panel-heading {
+  min-height: 32px;
+  padding: 5px 8px;
+}
+
+.action-feedback {
+  font-size: 9px;
+  line-height: 1.3;
+}
+
