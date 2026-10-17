@@ -81,10 +81,10 @@
     { selector: null, title: "Your shift", text: "Manage flights using the controls. Critical emergencies require a typed command." },
     { selector: '[data-tutorial="radar"]', title: "Read the radar", text: "Select aircraft on the radar. Follow routes and watch for conflicts." },
     { selector: '[data-tutorial="traffic"]', title: "Manage up to four aircraft", text: "Select a flight to view its status. Maximum 4 aircraft at once." },
-    { selector: '[data-tutorial="flight-actions"]', title: "Control flights with buttons", text: "" },
-    { selector: '[data-tutorial="weather"]', title: "Weather and emergencies", text: "Rain, fog, wind, and storm cells affect flight safety. A critical emergency freezes movement and gives you ten real-time seconds to type the exact response; a timeout ends the shift." },
-    { selector: '[data-tutorial="sustainability"]', title: "Sustainability and routes", text: "The panel compares route distance, estimated fuel, and CO₂. A safe route shortcut can reduce the estimate; safety always comes first." },
-    { selector: ".score-counter", title: "Scoring", text: "Earn points for safe active play, successful departures and arrivals, resolving emergencies, and genuinely shortening a safe route. Paused time earns no survival points." }
+    { selector: '[data-tutorial="flight-actions"]', title: "Control flights with buttons", text: "Select a flight and choose an available action. Check runway and weather conditions." },
+    { selector: '[data-tutorial="weather"]', title: "Weather and emergencies", text: "Monitor wind, rain, fog and storms. Critical emergencies pause traffic for 10 seconds." },
+    { selector: '[data-tutorial="sustainability"]', title: "Sustainability and routes", text: "View estimated distance, fuel and CO₂. Safety comes first." },
+    { selector: ".score-counter", title: "Scoring", text: "Earn points for safe play, completed flights, resolved emergencies and safe route improvements." }
   ];
   const state = {
     aircraft: [],
