@@ -2055,7 +2055,7 @@ function endShift(collision, reason = "") {
       crashCutscene.classList.remove("playing");
       crashCutsceneTimer = null;
       $("results-dialog").showModal();
-    }, 2600);
+    }, 3000);
   }
 
   function resultCell(label, value) {
