@@ -1740,3 +1740,83 @@ body {
 #action-feedback {
   display: none !important;
 }
+
+/* RIGHT MONITOR — clearer spacing and readable flight details */
+.monitor-operations .operations-screen {
+  padding: 9px;
+  gap: 9px;
+}
+
+/* Give panel headings some breathing room */
+.monitor-operations .panel-heading {
+  min-height: 40px;
+  padding: 8px 10px;
+}
+
+.monitor-operations .panel-heading h2 {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* Remove the redundant traffic-limit label.
+   The flight count already shows the limit. */
+.monitor-operations .threshold-tag {
+  display: none;
+}
+
+/* Make each flight easier to identify */
+.monitor-operations .traffic-list {
+  padding: 6px;
+}
+
+.monitor-operations .traffic-row {
+  min-height: 37px;
+  padding: 7px 8px;
+  gap: 9px;
+}
+
+.monitor-operations .traffic-call strong {
+  font-size: 11px;
+}
+
+.monitor-operations .traffic-call small {
+  font-size: 9px;
+}
+
+.monitor-operations .traffic-track {
+  font-size: 9px;
+}
+
+/* Make selected-flight details easier to read */
+.monitor-operations .selected-detail {
+  min-height: 44px;
+  padding: 8px 10px;
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.monitor-operations .selected-detail strong {
+  font-size: 10px;
+}
+
+/* Space out the flight action buttons */
+.monitor-operations .aircraft-actions {
+  padding: 10px;
+  gap: 8px;
+}
+
+.monitor-operations .aircraft-actions .button {
+  min-height: 34px;
+  padding: 7px 9px;
+  flex: 1 1 120px;
+  font-size: 11px;
+  line-height: 1.3;
+}
+
+/* Keep supporting instructions readable */
+.monitor-operations .action-note,
+.monitor-operations .empty-actions {
+  font-size: 10px;
+  line-height: 1.45;
+}
+
