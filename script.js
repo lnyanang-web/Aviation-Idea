@@ -78,10 +78,10 @@
     { id: "IN936", x: -30, y: 12, heading: 110, altitude: 10000, speed: 190, route: ["ECHO"], airline: "Pacific Link", type: "B737", origin: "VANCOUVER" }
   ];
   const TUTORIAL_STEPS = [
-    { selector: null, title: "Your shift", text: "Manage a continuous flow of flights with buttons. Typing is used only when a critical emergency pauses the simulation." },
-    { selector: '[data-tutorial="radar"]', title: "Read the radar", text: "Aircraft symbols and callsigns show traffic. The AIRPORT marker shows where authorized departures taxi to the runway; only one departure uses that route at a time." },
-    { selector: '[data-tutorial="traffic"]', title: "Manage up to four aircraft", text: "Select a flight to inspect its status. The local airport holds a maximum of four aircraft; new traffic enters as a slot becomes available." },
-    { selector: '[data-tutorial="flight-actions"]', title: "Control flights with buttons", text: "Choose a flight, then authorize its departure or approach when the runway and weather allow it. Aircraft move through taxi, takeoff, flight, and landing stages." },
+    { selector: null, title: "Your shift", text: "Manage flights using the controls. Critical emergencies require a typed command." },
+    { selector: '[data-tutorial="radar"]', title: "Read the radar", text: "Select aircraft on the radar. Follow routes and watch for conflicts." },
+    { selector: '[data-tutorial="traffic"]', title: "Manage up to four aircraft", text: "Select a flight to view its status. Maximum 4 aircraft at once." },
+    { selector: '[data-tutorial="flight-actions"]', title: "Control flights with buttons", text: "" },
     { selector: '[data-tutorial="weather"]', title: "Weather and emergencies", text: "Rain, fog, wind, and storm cells affect flight safety. A critical emergency freezes movement and gives you ten real-time seconds to type the exact response; a timeout ends the shift." },
     { selector: '[data-tutorial="sustainability"]', title: "Sustainability and routes", text: "The panel compares route distance, estimated fuel, and CO₂. A safe route shortcut can reduce the estimate; safety always comes first." },
     { selector: ".score-counter", title: "Scoring", text: "Earn points for safe active play, successful departures and arrivals, resolving emergencies, and genuinely shortening a safe route. Paused time earns no survival points." }
