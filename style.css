@@ -883,3 +883,193 @@ body { position: relative; display: block; min-height: 600px; background: #070c1
   }
 }
 
+/* TOWER CONTROL — visual identity pass */
+/* Compact, practical aviation workstation */
+
+:root {
+  --tc-ink: #18343a;
+  --tc-frame: #243d43;
+  --tc-paper: #f0eee3;
+  --tc-panel: #faf8ef;
+  --tc-line: #c5c9bc;
+  --tc-muted: #637570;
+  --tc-green: #28684f;
+  --tc-amber: #c28a35;
+  --tc-red: #b7473f;
+}
+
+/* A calmer, more consistent workstation */
+@media (min-width: 761px) {
+  body {
+    background: #9caeaa;
+    color: var(--tc-ink);
+  }
+
+  .topbar {
+    background: #203b40;
+    border-bottom: 3px solid #b48b49;
+    box-shadow: none;
+  }
+
+  .brand-mark {
+    border-radius: 3px;
+    border: 1px solid #91aaa0;
+    background: #304f4e;
+    color: #f3f0df;
+  }
+
+  .monitor {
+    border: 2px solid #30484c;
+    border-radius: 5px;
+    background: #30484c;
+    box-shadow: 0 5px 0 #667b76;
+  }
+
+  .monitor-screen {
+    border: 2px solid #1c3034;
+    border-radius: 2px;
+    background: var(--tc-paper);
+    box-shadow: none;
+  }
+
+  .monitor-label {
+    font-size: 9px;
+    letter-spacing: 1.5px;
+    color: #f4f0df;
+  }
+
+  .panel,
+  .radar-card {
+    border-radius: 2px;
+    box-shadow: none;
+  }
+
+  .traffic-panel,
+  .flight-actions-panel,
+  .sustainability-panel,
+  .weather-strip {
+    border-radius: 3px;
+    box-shadow: none;
+  }
+
+  .radar-heading {
+    background: #e4e7dc;
+  }
+
+  .radar-heading h1,
+  .panel-heading h2 {
+    color: #203c40;
+    letter-spacing: 0;
+  }
+
+  .eyebrow {
+    color: #60776e;
+    letter-spacing: 1.4px;
+  }
+
+  .button {
+    min-height: 34px;
+    border: 1px solid #aebcb1;
+    border-radius: 3px;
+    background: #eeede3;
+    color: #203b40;
+    box-shadow: 0 1px 0 #c8cabe;
+    transition: background-color 120ms ease,
+                border-color 120ms ease;
+  }
+
+  .button:hover:not(:disabled) {
+    background: #dce5d9;
+    border-color: #6b8a78;
+  }
+
+  .button-primary {
+    background: #28684f;
+    border-color: #20553f;
+    color: #fffdf3;
+    box-shadow: none;
+  }
+
+  .button-primary:hover:not(:disabled) {
+    background: #20553f;
+    color: #fffdf3;
+  }
+
+  .time-picker select,
+  #speed-select,
+  .radar-meta select {
+    border-radius: 3px;
+    border: 1px solid #66827c;
+    background: #294b50;
+  }
+
+  .traffic-row {
+    border-radius: 2px;
+    border-bottom: 1px solid #d8dcd1;
+  }
+
+  .traffic-row[aria-selected="true"] {
+    background: #dce9dc;
+    border-color: #498064;
+    box-shadow: inset 3px 0 #28684f;
+  }
+
+  .traffic-row.has-alert {
+    background: #f8e9ca;
+    color: #70451b;
+  }
+
+  .safety-banner {
+    border-radius: 2px;
+  }
+
+  .weather-strip {
+    background: #eeeee3;
+  }
+
+  .weather-strip div strong {
+    color: #203b40;
+  }
+
+  .results-dialog,
+  .rules-dialog {
+    border-radius: 4px;
+    border: 2px solid #30484c;
+    box-shadow: 0 16px 45px #172b2c55;
+  }
+}
+
+/* Consistent status colours */
+.scope-live,
+.traffic-row .status-safe {
+  color: var(--tc-green);
+}
+
+.safety-banner.alert {
+  border-left: 3px solid var(--tc-amber);
+}
+
+.safety-banner.safe {
+  border-left: 3px solid var(--tc-green);
+}
+
+/* Keep focus obvious without adding visual clutter */
+button:focus-visible,
+select:focus-visible,
+input:focus-visible,
+[tabindex="0"]:focus-visible {
+  outline: 2px solid #d39b42;
+  outline-offset: 2px;
+}
+
+/* Respect users who prefer reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
