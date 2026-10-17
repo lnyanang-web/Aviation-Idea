@@ -1589,4 +1589,10 @@ body {
     max-width: 100%;
   }
 }
+#radar {
+  width: min(100%, 46vh);
+  height: auto;
+  aspect-ratio: 1 / 1;
+  flex-shrink: 0;
+}
 
