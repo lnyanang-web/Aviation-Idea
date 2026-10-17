@@ -595,14 +595,26 @@
     state.selectedId = id;
     renderUI();
   }
+let crashCutsceneTimer = null;
 
-  function resetShift() {
+function resetShift() {
+    if (crashCutsceneTimer !== null) {
+      clearTimeout(crashCutsceneTimer);
+      crashCutsceneTimer = null;
+    }
+
+    const crashCutscene = $("crash-cutscene");
+    crashCutscene.hidden = true;
+    crashCutscene.setAttribute("aria-hidden", "true");
+    crashCutscene.classList.remove("playing");
+
     state.aircraft = [
       createDeparture(SHIFT_DEPARTURES[0]),
       createDeparture(SHIFT_DEPARTURES[1]),
       createDeparture(SHIFT_DEPARTURES[2]),
       createArrival(SHIFT_ARRIVALS[0])
     ];
+  
     state.completedFlights = [];
     const taxiing = state.aircraft[2];
     taxiing.stage = "taxi";
@@ -1977,25 +1989,32 @@
     return "Keep monitoring runway demand and predicted separation as traffic changes.";
   }
 
-  function endShift(collision, reason = "") {
+  
+function endShift(collision, reason = "") {
     if (state.finished) return;
     state.finished = true;
     state.paused = true;
     state.gameOver = collision;
-    state.endReason = reason || `Collision involving ${collision.first.id} and ${collision.second.id}.`;
+    state.endReason = reason || (collision
+      ? `Collision involving ${collision.first.id} and ${collision.second.id}.`
+      : "Shift ended.");
+
     if (collision) {
       state.collisions += 1;
       state.aircraftLost += 2;
     }
+
     state.weatherEmergency = null;
     $("emergency-alert").hidden = true;
     $("emergency-command-input").value = "";
     if ($("results-dialog").open) $("results-dialog").close();
     if ($("rules-dialog").open) $("rules-dialog").close();
     state.reportOpen = false;
+
     const totals = metrics();
     const grade = shiftGrade();
     const duration = formatClock(state.simTime);
+
     $("results-kicker").textContent = "GAME OVER";
     $("results-title").textContent = "Current Shift Report";
     $("results-summary").textContent = state.endReason;
@@ -2013,14 +2032,30 @@
       resultCell("Estimated fuel use", `${Math.round(totals.fuelKg).toLocaleString()} kg`),
       resultCell("Estimated CO₂ emissions", `${Math.round(totals.co2Kg).toLocaleString()} kg`)
     );
+
     $("results-feedback").textContent = `Suggestion: ${shiftSuggestions(collision)}`;
     $("results-caveat").textContent = "Aircraft operations, outcomes, fuel, and emissions are simulated estimates only. This is not operational guidance.";
     $("play-again").textContent = "RESTART SHIFT";
     $("play-again").setAttribute("aria-label", "Restart shift");
     $("pause-button").textContent = "Paused";
     $("pause-button").disabled = true;
+
     renderUI();
-    $("results-dialog").showModal();
+
+    const crashCutscene = $("crash-cutscene");
+    crashCutscene.hidden = false;
+    crashCutscene.setAttribute("aria-hidden", "false");
+    crashCutscene.classList.remove("playing");
+    void crashCutscene.offsetWidth;
+    crashCutscene.classList.add("playing");
+
+    crashCutsceneTimer = setTimeout(() => {
+      crashCutscene.hidden = true;
+      crashCutscene.setAttribute("aria-hidden", "true");
+      crashCutscene.classList.remove("playing");
+      crashCutsceneTimer = null;
+      $("results-dialog").showModal();
+    }, 2600);
   }
 
   function resultCell(label, value) {
