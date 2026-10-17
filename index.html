@@ -81,16 +81,18 @@
         <div class="monitor-label" id="operations-monitor-label"><span>02</span>OPERATIONS</div>
         <div class="monitor-screen operations-screen">
       <section class="panel traffic-panel" data-tutorial="traffic">
-        <div class="panel-heading"><div><p class="eyebrow">Flights</p><h2>Flight list <span id="aircraft-count">0 / 4</span></h2></div><span class="threshold-tag">LOCAL TRAFFIC<br>MAX 4</span></div>
+        <div class="panel-heading">
+  <h2>Flights <span id="aircraft-count">0 / 4</span></h2>
+</div>
         <div class="traffic-list" id="traffic-list" role="listbox" aria-label="Select aircraft"></div>
         <div class="selected-detail" id="selected-detail" aria-live="polite"></div>
       </section>
 
       <section class="panel flight-actions-panel" data-tutorial="flight-actions">
-        <div class="panel-heading small-heading"><div><p class="eyebrow">Controls</p><h2>Flight controls</h2></div></div>
-        <div class="aircraft-actions" id="aircraft-actions" aria-label="Available actions for the selected aircraft"></div>
-        <p class="action-feedback" id="action-feedback" aria-live="polite">Select a flight./p>
-      </section>
+<div class="panel-heading small-heading">
+  <h2>Controls</h2>
+</div>        <div class="aircraft-actions" id="aircraft-actions" aria-label="Available actions for the selected aircraft"></div>
+<p class="action-feedback" id="action-feedback" aria-live="polite">Select a flight.</p>      </section>
       <section class="weather-strip" aria-label="Simulated weather" data-tutorial="weather">
       <div><span>WEATHER</span><strong id="weather-condition">CLEAR</strong></div>
       <div><span>WIND</span><strong id="weather-wind">CALM</strong></div>
@@ -98,14 +100,14 @@
       <p id="weather-warning" aria-live="polite">No active weather advisories.</p>
       </section>
       <section class="panel sustainability-panel" data-tutorial="sustainability">
-        <div class="panel-heading small-heading"><div><p class="eyebrow">ESTIMATES</p><h2>Flight totals</h2></div></div>
-        <div class="sustainability-mini">
+<div class="panel-heading small-heading">
+  <h2>Flight totals</h2>
+</div>        <div class="sustainability-mini">
           <div><span>DISTANCE</span><strong id="total-distance">0.0 NM</strong></div>
           <div><span>EST. FUEL</span><strong id="total-fuel">0 kg</strong></div>
           <div><span>EST. CO₂</span><strong id="total-co2">0 kg</strong></div>
         </div>
         <div class="shift-metrics" id="shift-metrics"></div>
-        <p class="estimate-disclaimer">Simulated estimates only. Safety comes before shorter routes or lower emissions.</p>
       </section>
         </div>
       </section>
