@@ -1551,3 +1551,42 @@ body {
     overflow: auto;
   }
 }
+
+/* TOWER CONTROL — compact layout */
+@media (min-width: 761px) {
+  .monitor-bank {
+    grid-template-columns: minmax(0, 1.65fr) minmax(340px, 0.85fr);
+    gap: 10px;
+    height: min(56vh, 540px);
+  }
+
+  .radar-heading h1 {
+    font-size: 12px;
+  }
+
+  .eyebrow {
+    font-size: 8px;
+  }
+
+  .learning-tip p {
+    font-size: 9px;
+  }
+
+  .safety-banner {
+    font-size: 9px;
+  }
+
+  .monitor-label {
+    font-size: 8px;
+  }
+
+  .radar-wrap {
+    min-height: 0;
+  }
+
+  #radar {
+    height: min(100%, 46vh);
+    max-width: 100%;
+  }
+}
+
