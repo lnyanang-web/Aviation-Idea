@@ -1430,3 +1430,124 @@ input:focus-visible,
     transition-duration: .01ms !important;
   }
 }
+
+/* TOWER CONTROL — compact operations UI */
+:root {
+  --bg: #121212;
+  --panel: #1e1e1e;
+  --panel-high: #252525;
+  --line: #363636;
+  --line-strong: #505050;
+  --text: #dedede;
+  --muted: #a0a0a0;
+  --faint: #777;
+  --cyan: #91b9bd;
+  --green: #78b88a;
+  --amber: #d7a34a;
+  --red: #df7770;
+  --mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+}
+
+body {
+  background: #121212;
+  color: #dedede;
+  font-family: var(--mono);
+  font-size: 11px;
+}
+
+.topbar {
+  background: #191919;
+  border-bottom: 1px solid #454545;
+  box-shadow: none;
+}
+
+.monitor {
+  border: 1px solid #454545;
+  border-radius: 2px;
+  background: #202020;
+  box-shadow: none;
+}
+
+.monitor-screen {
+  border: 1px solid #383838;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.panel,
+.radar-card,
+.traffic-panel,
+.flight-actions-panel,
+.sustainability-panel,
+.weather-strip {
+  border: 1px solid #383838;
+  border-radius: 2px;
+  background: #1e1e1e;
+  box-shadow: none;
+}
+
+.radar-heading,
+.panel-heading {
+  background: #242424;
+  border-bottom: 1px solid #424242;
+}
+
+.radar-heading h1,
+.panel-heading h2 {
+  color: #dedede;
+  font-family: var(--mono);
+}
+
+.traffic-row {
+  border-radius: 0;
+  border-bottom: 1px solid #353535;
+  font-family: var(--mono);
+}
+
+.traffic-row[aria-selected="true"] {
+  border-radius: 0;
+  box-shadow: inset 3px 0 var(--green);
+}
+
+.button,
+.button-primary {
+  min-height: 28px;
+  border: 1px solid #505050;
+  border-radius: 2px;
+  box-shadow: none;
+  font-family: var(--mono);
+  font-size: 10px;
+}
+
+.button {
+  color: #dedede;
+  background: #292929;
+}
+
+.button-primary {
+  color: #d9f0df;
+  background: #294333;
+  border-color: #477854;
+}
+
+.time-picker select,
+#speed-select,
+.radar-meta select {
+  border-radius: 2px;
+  font-family: var(--mono);
+}
+
+.results-dialog,
+.rules-dialog,
+.tutorial-card {
+  border-radius: 2px;
+  box-shadow: none;
+}
+
+@media (max-width: 760px) {
+  body {
+    min-height: 100vh;
+    height: auto;
+    overflow: auto;
+  }
+}
