@@ -1684,3 +1684,22 @@ body {
 .select-flight-message {
   display: none !important;
 }
+
+/* Hide the flight-selection instruction */
+#flight-placeholder,
+.flight-placeholder,
+.select-flight-message {
+  display: none !important;
+}
+
+/* Compact, subdued radar notice */
+.safety-banner {
+  font-size: 9px !important;
+  line-height: 1.2 !important;
+  padding: 3px 6px !important;
+  color: #777 !important;
+  background: rgba(20, 20, 20, 0.8) !important;
+  border-color: #383838 !important;
+  box-shadow: none !important;
+  max-width: 240px;
+}
