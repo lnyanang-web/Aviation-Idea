@@ -1657,3 +1657,19 @@ body {
   display: none !important;
 }
 
+.monitor,
+.monitor * {
+  --monitor-text: #ffffff;
+}
+
+.monitor h1,
+.monitor h2,
+.monitor h3,
+.monitor p,
+.monitor span,
+.monitor label,
+.monitor strong,
+.monitor small,
+.monitor div {
+  color: #ffffff;
+}
