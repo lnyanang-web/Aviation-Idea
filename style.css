@@ -1673,3 +1673,14 @@ body {
 .monitor div {
   color: #ffffff;
 }
+.scope-live,
+.scope-live * {
+  color: #183c28 !important;
+}
+
+/* Hide the select-flight placeholder message */
+#flight-placeholder,
+.flight-placeholder,
+.select-flight-message {
+  display: none !important;
+}
