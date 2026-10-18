@@ -1,684 +1,201 @@
 /* ==========================================================================
-   TOWER CONTROL // AVIONICS INTERFACE GRAPHICS UTILITY MATRIX
-   REGULATORY DESIGN TOKENS & SYSTEM VARIABLE FRAMEWORK
+   TOWER CONTROL // PRO-GRADE OPERATIONAL CONSOLE CLEANUP
+   RESTORES AND CORES ORIGINAL ELEMENT IDENTITIES AND STYLING HOOKS
    ========================================================================== */
 
 :root {
   color-scheme: dark;
-  
-  /* Core Industrial Palette Hierarchy */
-  --bg-dark-core: #05080c;
-  --bg-panel-backing: #0b1016;
-  --bg-header-backing: #0f151d;
-  --bg-active-highlight: #16202c;
-  
-  /* Micro-Grid Structural Boundary Tokens */
-  --border-tactical: #1b2633;
-  --border-focus: #3d526b;
-  
-  /* Precision Typographic Contrast Scales */
-  --text-bright: #d8e4f0;
-  --text-dimmed: #889bb0;
-  --text-dark-label: #526678;
-  
-  /* Standard Functional Tactical Priority States */
-  --state-nominal: #00e676;
-  --state-nominal-alpha: rgba(0, 230, 118, 0.08);
-  --state-warning: #ffb300;
-  --state-warning-alpha: rgba(255, 179, 0, 0.08);
-  --state-critical: #f44336;
-  --state-critical-alpha: rgba(244, 67, 54, 0.1);
-  --state-informational: #00b0ff;
-  --state-informational-alpha: rgba(0, 176, 255, 0.08);
-  
-  /* Engineering Layout Typography Core */
-  --font-mono: 'JetBrains Mono', 'Fira Code', 'SF Mono', Consolas, monospace;
+  --bg: #070a0e;
+  --panel: #0b1118;
+  --panel-high: #111a24;
+  --line: #1c2633;
+  --line-strong: #2c3c4f;
+  --text: #d8e4f0;
+  --muted: #8598a6;
+  --faint: #546675;
+  --cyan: #00b0ff;
+  --green: #00e676;
+  --amber: #ffb300;
+  --red: #f44336;
+  --mono: 'JetBrains Mono', 'Fira Code', 'SF Mono', Consolas, monospace;
+  --sans: 'JetBrains Mono', 'SF Pro Mono', monospace;
 }
 
-/* Global Strict Layout Resets */
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
+* { box-sizing: border-box; }
+html, body { width: 100%; height: 100vh; margin: 0; padding: 0; background: var(--bg); overflow: hidden; }
+body { color: var(--text); font: 11px/1.4 var(--mono); display: flex; flex-direction: column; }
+button, select, input { font-family: inherit; font-size: inherit; color: inherit; background: transparent; border: none; }
+button, select { cursor: pointer; }
 
-html, body {
-  width: 100%;
-  height: 100vh;
-  background-color: var(--bg-dark-core);
-  overflow: hidden;
-}
-
-body {
-  color: var(--text-bright);
-  font-family: var(--font-mono);
-  font-size: 11px;
-  line-height: 1.4;
-  letter-spacing: -0.015em;
-  display: flex;
-  flex-direction: column;
-}
-
-/* Prevent native form factor elements from inheriting browser styling defaults */
-select, button, input {
-  font-family: inherit;
-  font-size: inherit;
-  color: inherit;
-  background: transparent;
-  border: none;
-}
-
-/* ==========================================================================
-   HEADER MANAGEMENT TERMINAL BLUEPRINT
-   ========================================================================== */
-
-.atc-header {
-  height: 44px;
-  background-color: var(--bg-header-backing);
-  border-bottom: 1px solid var(--border-tactical);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 16px;
-  flex-shrink: 0;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
-}
-
-.header-brand {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.brand-text {
-  font-weight: 700;
-  font-size: 12px;
-  letter-spacing: 0.06em;
-  color: var(--text-bright);
-}
-
-.status-beacon {
-  width: 6px;
-  height: 6px;
-  background-color: var(--state-nominal);
-  border-radius: 50%;
-  box-shadow: 0 0 6px var(--state-nominal);
-}
-
-.header-telemetry {
-  display: flex;
-  align-items: center;
-  height: 100%;
-}
-
-.telemetry-block {
-  padding: 0 20px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-
-.telemetry-block.border-left {
-  border-left: 1px solid var(--border-tactical);
-}
-
-.telemetry-block .label {
-  font-size: 8px;
-  font-weight: 600;
-  color: var(--text-dark-label);
-  letter-spacing: 0.03em;
-}
-
-.telemetry-block .value {
-  font-size: 15px;
-  font-weight: 500;
-  letter-spacing: 0.02em;
-}
-
-.telemetry-block .value.positive { 
-  color: var(--state-warning); 
-}
-
-.header-controls {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.control-select-group {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 9px;
-  font-weight: 600;
-  color: var(--text-dimmed);
-}
-
-.control-select-group select {
-  background-color: var(--bg-dark-core);
-  border: 1px solid var(--border-tactical);
-  padding: 0 8px;
-  height: 26px;
-  border-radius: 2px;
-  color: var(--text-bright);
-  outline: none;
-  cursor: pointer;
-}
-
-.control-select-group select:focus {
-  border-color: var(--border-focus);
-}
-
-/* ==========================================================================
-   PRODUCTION COMMAND INTERACTIVE ACTION ELEMENTS
-   ========================================================================== */
-
-.btn {
-  height: 26px;
-  padding: 0 12px;
-  border-radius: 2px;
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  cursor: pointer;
-  border: 1px solid var(--border-tactical);
-  background-color: var(--bg-panel-backing);
-  color: var(--text-dimmed);
-  transition: background 0.12s ease, border-color 0.12s ease, color 0.12s ease;
-}
-
-.btn .icon {
-  width: 13px;
-  height: 13px;
-  flex-shrink: 0;
-}
-
-.btn:hover {
-  background-color: var(--bg-active-highlight);
-  border-color: var(--border-focus);
-  color: var(--text-bright);
-}
-
-.btn-primary {
-  background-color: var(--state-nominal-alpha);
-  border-color: var(--state-nominal);
-  color: var(--state-nominal);
-}
-
-.btn-primary:hover {
-  background-color: var(--state-nominal);
-  color: var(--bg-dark-core);
-}
-
-.btn-danger {
-  background-color: var(--state-critical-alpha);
-  border-color: var(--state-critical);
-  color: var(--state-critical);
-}
-
-.btn-danger:hover {
-  background-color: var(--state-critical);
-  color: #ffffff;
-}
-
-.btn:focus-visible {
-  outline: 2px solid var(--state-warning);
-  outline-offset: 1px;
-}
-
-/* ==========================================================================
-   ASYMMETRIC SCREEN MATRIX ARCHITECTURE
-   ========================================================================== */
-
-.atc-workspace {
-  flex: 1;
-  display: grid;
-  grid-template-columns: 1fr 340px;
-  gap: 1px;
-  background-color: var(--border-tactical);
-  overflow: hidden;
-}
-
-.workspace-column {
-  display: flex;
-  flex-direction: column;
-  background-color: var(--bg-dark-core);
-  min-width: 0;
-  height: 100%;
-}
-
-.main-observation {
-  display: grid;
-  grid-template-rows: 1fr 1fr;
-  gap: 1px;
-  background-color: var(--border-tactical);
-}
-
-.data-matrix {
-  gap: 1px;
-  background-color: var(--border-tactical);
-}
-
-/* Panel Structural Layout Rules */
-.panel {
-  background-color: var(--bg-panel-backing);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-.panel-header {
-  height: 30px;
-  background-color: var(--bg-header-backing);
-  border-bottom: 1px solid var(--border-tactical);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 12px;
-  flex-shrink: 0;
-}
-
-.panel-header h2 {
-  font-size: 10px;
-  font-weight: 700;
-  color: var(--text-dimmed);
-  letter-spacing: 0.04em;
-}
-
-/* ==========================================================================
-   LEFT CELL: AIRFIELD VIEWPORT & CIRCULAR RADAR CORES
-   ========================================================================== */
-
-.canvas-container {
-  flex: 1;
+/* Hard-Edged Top Bar Clean Up */
+.topbar {
   position: relative;
+  z-index: 5;
+  height: 44px;
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: #0f151d;
+  border-bottom: 1px solid var(--line);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+}
+
+.brand { display: flex; align-items: center; gap: 8px; text-decoration: none; color: var(--text); }
+.brand-mark { width: 24px; height: 24px; display: grid; place-items: center; border: 1px solid var(--line-strong); background: var(--panel); font-size: 10px; font-weight: 700; }
+.brand > span:last-child { font-size: 11px; font-weight: 700; letter-spacing: 0.05em; }
+.brand small { display: none; } /* Stripped noisy text elements */
+
+.shift-status { display: flex; flex-direction: column; gap: 1px; font-size: 10px; }
+.shift-status span { color: var(--text-dark-label); font-size: 8px; }
+.shift-status strong { color: var(--text-bright); font-weight: 500; }
+
+.score-counter { padding: 0 16px; border-left: 1px solid var(--line); display: flex; flex-direction: column; justify-content: center; }
+.score-counter span { color: var(--faint); font-size: 8px; }
+.score-counter strong { font-size: 14px; font-weight: 700; color: var(--amber); }
+
+.header-actions { display: flex; gap: 8px; margin-left: auto; }
+.button { height: 26px; padding: 0 12px; border: 1px solid var(--line-strong); background: var(--panel); font-size: 10px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; transition: background 0.1s; }
+.button:hover:not(:disabled) { background: var(--line); border-color: var(--faint); }
+.button-primary { border-color: var(--green); background: rgba(0, 230, 118, 0.08); color: var(--green); }
+.button-primary:hover:not(:disabled) { background: var(--green); color: var(--bg); }
+
+/* Main Environment & Console Deck Layout */
+.tower-room { position: fixed; inset: 0; overflow: hidden; background: #05070a; }
+
+/* The View Window Frame Grid */
+.tower-window {
+  position: absolute;
+  top: 54px;
+  right: 16px;
+  left: 16px;
+  height: 44vh;
+  border: 4px solid #141a22;
   background: linear-gradient(180deg, #090e14 0%, #11171f 100%);
   overflow: hidden;
 }
+#airport-view { width: 100%; height: 100%; display: block; }
 
-#airport-view {
-  width: 100%;
-  height: 100%;
-  display: block;
-}
+.window-mullion { position: absolute; top: 0; bottom: 0; width: 4px; background: #141a22; z-index: 2; pointer-events: none; }
+.window-mullion-left { left: 25%; }
+.window-mullion-center { left: 50%; }
+.window-mullion-right { left: 75%; }
+.window-crossbar { display: none; } /* Purged redundant obstructing lines */
+.window-caption { position: absolute; right: 12px; bottom: 8px; z-index: 2; color: var(--cyan); font-size: 8px; font-weight: 700; }
 
-.horizon-line {
+/* Integrated Monitor Bank Configuration */
+.tower-console { position: fixed; inset: 0; pointer-events: none; }
+.monitor-bank {
   position: absolute;
-  top: 40%;
-  left: 0;
-  width: 100%;
-  height: 1px;
-  background-color: rgba(28, 37, 48, 0.4);
-  pointer-events: none;
-}
-
-.feed-tag {
-  font-size: 8px;
-  color: var(--state-informational);
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  background-color: rgba(0, 176, 255, 0.1);
-  padding: 2px 6px;
-  border-radius: 1px;
-}
-
-/* Precision Tactical Radar System Layout */
-.radar-system {
-  position: relative;
-}
-
-.radar-scope-container {
-  flex: 1;
-  position: relative;
-  display: grid;
-  place-items: center;
-  background-color: #040609;
-  overflow: hidden;
-}
-
-#radar {
-  height: 92%;
-  aspect-ratio: 1;
-  max-width: 95%;
-  border: 1px solid rgba(28, 37, 48, 0.6);
-  border-radius: 50%;
-  display: block;
-}
-
-.radar-compass {
-  position: absolute;
-  font-size: 8px;
-  font-weight: 600;
-  color: var(--text-dark-label);
-  pointer-events: none;
-  letter-spacing: 0.05em;
-}
-
-.compass-n { top: 10px; left: 50%; transform: translateX(-50%); }
-.compass-s { bottom: 10px; left: 50%; transform: translateX(-50%); }
-.compass-e { right: 16px; top: 50%; transform: translateY(-50%); }
-.compass-w { left: 16px; top: 50%; transform: translateY(-50%); }
-
-.radar-range-ring-label {
-  position: absolute;
-  bottom: 12px;
   right: 16px;
-  font-size: 8px;
-  font-weight: 600;
-  color: var(--text-dark-label);
-  letter-spacing: 0.02em;
+  bottom: 16px;
+  left: 16px;
+  height: calc(56vh - 80px);
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 12px;
+  pointer-events: none;
 }
 
-.radar-telemetry {
+.monitor {
+  position: relative;
+  background: var(--panel);
+  border: 1px solid var(--line);
   display: flex;
-  gap: 16px;
-  font-size: 9px;
-  color: var(--text-dark-label);
+  flex-direction: column;
+  overflow: hidden;
+  pointer-events: auto;
 }
+.monitor::before, .monitor::after { display: none; } /* Stripped fake bulky plastic shadow decorations */
 
-.radar-telemetry .value {
-  color: var(--text-bright);
-}
-
-.safety-indicator {
+.monitor-label {
+  height: 26px;
+  background: #0f151d;
+  border-bottom: 1px solid var(--line);
+  padding: 0 10px;
   display: flex;
   align-items: center;
-  gap: 10px;
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.01em;
-}
-
-.safety-indicator .indicator-box {
-  width: 7px;
-  height: 7px;
-  border-radius: 1px;
-  flex-shrink: 0;
-}
-
-.safety-indicator.nominal { color: var(--state-nominal); }
-.safety-indicator.nominal .indicator-box { background-color: var(--state-nominal); box-shadow: 0 0 4px var(--state-nominal); }
-.safety-indicator.conflict { color: var(--state-critical); }
-.safety-indicator.conflict .indicator-box { background-color: var(--state-critical); box-shadow: 0 0 6px var(--state-critical); }
-
-.radar-legend-strip {
-  display: flex;
-  gap: 16px;
+  justify-content: space-between;
   font-size: 9px;
-  font-weight: 500;
-  color: var(--text-dimmed);
+  font-weight: 700;
+  color: var(--muted);
 }
+.monitor-label span { color: var(--amber); }
 
-.legend-dot {
-  display: inline-block;
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  margin-right: 4px;
-  vertical-align: middle;
-}
-.legend-dot.airborne { background-color: var(--state-informational); }
-.legend-dot.holding { background-color: var(--state-warning); }
-.legend-dot.ground { background-color: var(--text-dark-label); }
+.monitor-screen { flex: 1; width: 100%; height: 100%; position: relative; background: #040609; overflow: hidden; }
+.monitor-screen::after { display: none; }
 
-/* ==========================================================================
-   RIGHT CELL: METEOROLOGY, QUEUES, & PROCESSING DATA CORE
-   ========================================================================== */
+/* Left Monitor Screen Contexts */
+.radar-card { height: 100%; display: flex; flex-direction: column; background: transparent; border: none; }
+.radar-heading { height: 32px; padding: 0 10px; display: flex; align-items: center; justify-content: space-between; background: #0f151d; border-bottom: 1px solid var(--line); }
+.radar-heading h1 { font-size: 10px; font-weight: 700; color: var(--text); }
+.scope-live { color: var(--green); font-size: 8px; font-weight: 700; }
+.radar-meta { display: flex; align-items: center; gap: 10px; font-size: 9px; }
+.radar-meta select, #speed-select { background: var(--bg); border: 1px solid var(--line); padding: 2px 6px; height: 22px; color: var(--text); }
 
-/* Meteorological Dashboard Interface Strip */
-.weather-telemetry { flex-shrink: 0; }
-.weather-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  padding: 10px;
-  gap: 10px;
-}
+.radar-wrap { flex: 1; display: grid; place-items: center; background: #040609; position: relative; overflow: hidden; }
+#radar { height: 92%; aspect-ratio: 1; max-width: 95%; border: 1px solid rgba(28,37,48,0.5); border-radius: 50%; }
 
-.weather-node {
-  border-left: 2px solid var(--border-tactical);
-  padding-left: 8px;
-}
+.radar-compass { position: absolute; font-size: 8px; color: var(--faint); pointer-events: none; }
+.compass-n { top: 8px; }
+.compass-s { bottom: 8px; }
+.compass-e { right: 12px; }
+.compass-w { left: 12px; }
+.radar-range { position: absolute; bottom: 12px; right: 12px; font-size: 8px; color: var(--faint); border: none; padding: 0; }
 
-.weather-node .label, .analytics-node .label {
-  font-size: 8px;
-  font-weight: 600;
-  color: var(--text-dark-label);
-  display: block;
+.radar-lower { height: 32px; background: #0f151d; border-top: 1px solid var(--line); display: flex; align-items: center; padding: 0 10px; justify-content: space-between; }
+.safety-banner { display: flex; align-items: center; gap: 8px; font-size: 9px; background: transparent !important; border: none !important; padding: 0 !important; }
+.safety-indicator { width: 6px; height: 6px; border-radius: 50%; background: var(--green); }
+.safety-banner.alert .safety-indicator { background: var(--red); }
+
+/* Right Monitor Screen Contexts */
+.operations-screen { display: flex; flex-direction: column; height: 100%; background: var(--panel); }
+.weather-strip { height: 38px; display: grid; grid-template-columns: repeat(3, 1fr); padding: 4px 10px; background: #0f151d; border-bottom: 1px solid var(--line); align-items: center; }
+.weather-strip div span { font-size: 7px; color: var(--faint); display: block; }
+.weather-strip div strong { font-size: 10px; color: var(--text); font-weight: 500; }
+.weather-strip > p { display: none; }
+
+.ops-column { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+.traffic-panel { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+.panel-heading { height: 28px; background: rgba(0,0,0,0.15); border-bottom: 1px solid var(--line); display: flex; align-items: center; padding: 0 10px; justify-content: space-between; }
+.panel-heading h2 { font-size: 9px; font-weight: 700; color: var(--muted); }
+
+.traffic-list { flex: 1; overflow-y: auto; padding: 2px 0; }
+.traffic-row { width: 100%; min-height: 34px; padding: 6px 10px; display: grid; grid-template-columns: 6px 1fr auto; align-items: center; gap: 10px; border-bottom: 1px solid rgba(28,37,48,0.3); }
+.traffic-row:hover { background: rgba(255,255,255,0.015); }
+.traffic-row[aria-selected="true"] { background: var(--bg-active-highlight); box-shadow: inset 3px 0 0 var(--cyan); color: #fff; }
+.traffic-row.has-alert { box-shadow: inset 3px 0 0 var(--amber); background: rgba(255,179,0,0.02); }
+
+.traffic-diamond { width: 4px; height: 4px; border-radius: 50%; background: var(--cyan); }
+.traffic-row.has-alert .traffic-diamond { background: var(--amber); }
+.traffic-call { display: flex; flex-direction: column; }
+.traffic-call strong { font-size: 10px; font-weight: 700; }
+.traffic-call small { font-size: 8px; color: var(--faint); }
+.traffic-track { font-size: 9px; text-align: right; }
+
+.selected-detail { min-height: 40px; padding: 8px 10px; background: #0f151d; border-top: 1px solid var(--line); font-size: 9px; color: var(--muted); }
+.selected-detail strong { color: var(--text); }
+
+.aircraft-actions { padding: 8px 10px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; background: var(--panel); border-top: 1px solid var(--line); }
+.aircraft-actions .button { height: 30px; justify-content: center; }
+
+/* Analytics Footprint Base */
+.performance-panel { height: 64px; background: #0f151d; border-top: 1px solid var(--line); display: flex; flex-direction: column; justify-content: center; }
+.metric-grid { display: grid; grid-template-columns: repeat(3, 1fr); padding: 0 10px; }
+.metric-grid div { border-left: 1px solid var(--line); padding-left: 8px; }
+.metric-grid div:first-child { border-left: none; padding-left: 0; }
+.metric-grid span { font-size: 7px; color: var(--faint); display: block; }
+.metric-grid strong { font-size: 11px; color: var(--text); font-weight: 500; }
+
+/* Dialog Modals Interceptors */
+.results-dialog, .rules-dialog { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); border: 1px solid var(--border-focus); background: var(--panel); padding: 20px; width: min(460px, calc(100% - 32px)); color: var(--text); }
+.results-dialog::backdrop, .rules-dialog::backdrop { background: rgba(3,5,8,0.85); }
+.results-header { border-bottom: 1px solid var(--line); padding-bottom: 8px; margin-bottom: 12px; }
 Use code with caution.
-letter-spacing: 0.04em;
-margin-bottom: 2px;
-}
-.weather-node .value, .analytics-node .value {
-font-size: 11px;
-font-weight: 500;
-color: var(--text-bright);
-}
-/* Flight Processor Queue Framework Table */
-.flight-processor {
-flex: 1;
-}
-.flight-processor .counter {
-font-size: 9px;
-font-weight: 700;
-background-color: rgba(255, 255, 255, 0.04);
-padding: 1px 6px;
-color: var(--text-bright);
-}
-.table-scroll-container {
-flex: 1;
-overflow-y: auto;
-}
-.traffic-table {
-width: 100%;
-border-collapse: collapse;
-text-align: left;
-}
-.traffic-table th {
-font-size: 9px;
-font-weight: 600;
-color: var(--text-dark-label);
-padding: 8px 12px;
-border-bottom: 1px solid var(--border-tactical);
-background-color: rgba(0, 0, 0, 0.15);
-letter-spacing: 0.03em;
-}
-.traffic-table td {
-padding: 9px 12px;
-border-bottom: 1px solid rgba(27, 38, 51, 0.4);
-color: var(--text-dimmed);
-vertical-align: middle;
-}
-.traffic-row-item {
-cursor: pointer;
-}
-.traffic-row-item:hover {
-background-color: rgba(255, 255, 255, 0.015);
-}
-.traffic-row-item.selected-target {
-background-color: var(--bg-active-highlight);
-color: var(--text-bright);
-box-shadow: inset 3px 0 0 var(--state-informational);
-}
-.traffic-row-item.alert-state {
-box-shadow: inset 3px 0 0 var(--state-warning);
-background-color: rgba(255, 179, 0, 0.02);
-}
-.table-ident-callsign {
-font-weight: 700;
-color: var(--text-bright);
-}
-.status-tag {
-display: inline-block;
-font-size: 8px;
-font-weight: 700;
-text-transform: uppercase;
-padding: 2px 6px;
-border-radius: 2px;
-letter-spacing: 0.02em;
-}
-.status-tag.airborne { background-color: var(--state-informational-alpha); color: var(--state-informational); }
-.status-tag.holding { background-color: var(--state-warning-alpha); color: var(--state-warning); }
-.status-tag.ground { background-color: var(--border-tactical); color: var(--text-dimmed); }
-/* Command Executive Command Interface Block */
-.command-module {
-height: 146px;
-flex-shrink: 0;
-border-top: 1px solid var(--border-tactical);
-}
-.command-content {
-padding: 12px;
-display: flex;
-flex-direction: column;
-gap: 10px;
-height: 100%;
-}
-.flight-data-card {
-font-size: 10px;
-line-height: 1.4;
-color: var(--text-dimmed);
-border-left: 2px solid var(--border-focus);
-padding-left: 8px;
-}
-.flight-data-card strong {
-color: var(--text-bright);
-}
-.flight-data-card.empty {
-color: var(--text-dark-label);
-font-style: italic;
-border-left-color: var(--border-tactical);
-}
-.action-grid {
-display: grid;
-grid-template-columns: repeat(2, 1fr);
-gap: 8px;
-}
-.action-grid .btn {
-height: 32px;
-justify-content: center;
-}
-/* Telemetry Operational Analytics Box Module */
-.telemetry-analytics {
-height: 114px;
-flex-shrink: 0;
-border-top: 1px solid var(--border-tactical);
-}
-.analytics-grid {
-display: grid;
-grid-template-columns: repeat(3, 1fr);
-padding: 12px 10px;
-}
-.analytics-node {
-border-left: 2px solid var(--border-tactical);
-padding-left: 8px;
-}
-.analytics-footer {
-padding: 6px 12px;
-font-size: 8px;
-font-weight: 500;
-color: var(--text-dark-label);
-border-top: 1px solid var(--border-tactical);
-letter-spacing: 0.02em;
-}
-/* ==========================================================================
-MODALS AND REGULATORY INTERCEPTOR DIALOGS
-========================================================================== */
-.tactical-modal {
-border: 1px solid var(--border-focus);
-background-color: var(--bg-panel-backing);
-color: var(--text-bright);
-width: min(520px, calc(100% - 32px));
-margin: auto;
-padding: 20px;
-border-radius: 2px;
-box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6);
-}
-.tactical-modal::backdrop {
-background-color: rgba(3, 5, 8, 0.85);
-}
-.modal-inner h2 {
-font-size: 12px;
-font-weight: 700;
-margin-bottom: 16px;
-border-bottom: 1px solid var(--border-tactical);
-padding-bottom: 6px;
-color: var(--state-warning);
-letter-spacing: 0.04em;
-}
-.protocol-list {
-list-style: none;
-display: flex;
-flex-direction: column;
-gap: 10px;
-margin-bottom: 20px;
-}
-.protocol-list li {
-font-size: 11px;
-line-height: 1.45;
-color: var(--text-dimmed);
-}
-.protocol-list li strong {
-color: var(--text-bright);
-}
-.modal-actions {
-display: flex;
-justify-content: flex-end;
-}
-.report-grid {
-display: grid;
-grid-template-columns: repeat(2, 1fr);
-gap: 10px;
-margin-bottom: 20px;
-}
-.report-cell {
-background-color: var(--bg-header-backing);
-border: 1px solid var(--border-tactical);
-padding: 8px 12px;
-}
-.report-cell span {
-font-size: 8px;
-font-weight: 600;
-color: var(--text-dark-label);
-display: block;
-letter-spacing: 0.04em;
-margin-bottom: 2px;
-}
-.report-cell strong {
-font-size: 15px;
-font-weight: 500;
-color: var(--text-bright);
-}
-/* ==========================================================================
-ANIMATIONS AND DYNAMIC UTILITY CLASSES
-========================================================================== */
-.blinking {
-animation: avionic-pulse-glow 2s infinite ease-in-out;
-}
-@keyframes avionic-pulse-glow {
-0%, 100% { opacity: 0.35; }
-50% { opacity: 1; }
-}
-/* High Contrast Accessibility Keyboard Focusing Overrides */
-button:focus-visible,
-select:focus-visible,
-input:focus-visible {
-outline: 2px solid var(--state-warning);
-outline-offset: 1px;
-}
-/* Handle Layout Responsiveness Cleanly */
-@media (max-width: 960px) {
-.atc-workspace {
-grid-template-columns: 1fr;
-grid-template-rows: 1fr 320px;
-}
-.data-matrix {
-grid-template-columns: 1fr 1fr;
-grid-template-rows: auto 1fr auto;
-}
-.weather-telemetry { grid-column: 1 / span 2; }
-.flight-processor { grid-column: 1; grid-row: 2 / span 2; }
-.command-module { grid-column: 2; grid-row: 2; border-top: 0; }
-.telemetry-analytics { grid-column: 2; grid-row: 3; }
-}
+.results-header h2 { font-size: 12px; color: var(--amber); }
+.results-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px; }
+.result-cell { background: #0f151d; border: 1px solid var(--line); padding: 8px; }
+.result-cell span { font-size: 7px; color: var(--faint); display: block; }
+.result-cell strong { font-size: 13px; color: var(--text); }
+/* Hide redundant furniture details */
+.tower-desk, .desk-surface, .desk-front, .desk-mouse, .radar-legend, .learning-tip { display: none !important; }
