@@ -1,200 +1,198 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Tower Control — Air Traffic Simulation</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#081522">
+  <meta name="description" content="Tower Control is a simulated airport operations game with fictional flights, routing, weather, and conflict detection.">
+  <title>Tower Control — Airspace Training</title>
+  <link rel="stylesheet" href="style.css?v=2">
+  <script src="script.js" defer></script>
 </head>
 <body>
-
-  <!-- TOP MANAGEMENT CONTROLS PANEL -->
-  <header class="topbar">
-    <a href="#" class="brand">
-      <div class="brand-mark">TC</div>
-      <div>
-        <span>TOWER CONTROL</span>
-        <small>SYSTEM INTERFACE v4.1</small>
-      </div>
-    </a>
-
-    <div class="shift-status">
-      <span>SECTOR TIME</span>
-      <strong id="shift-clock">00:00</strong>
-    </div>
-
-    <div class="shift-status">
-      <span>AIRCRAFT PROCESSING CAP</span>
-      <strong id="processing-ratio">0 / 4</strong>
-    </div>
-
-    <div class="score-counter">
-      <span>SHIFT_SCORE</span>
-      <strong id="shift-score">0</strong>
-    </div>
-
-    <div class="header-actions">
-      <button class="button" id="btn-pause">Pause</button>
-      <button class="button" id="btn-restart">Restart</button>
-      <button class="button" id="btn-rules">Manual</button>
-      <button class="button" id="btn-report">Shift Report</button>
-      <button class="button button-primary" id="btn-tutorial">Tutorial</button>
-    </div>
-  </header>
-
-  <!-- ENVIRONMENT WORKSPACE INTERFACE CORE -->
-  <main class="app-grid">
-    
-    <!-- PRIMARY OBSERVATION WINDOWS -->
-    <div class="radar-card">
-      <div class="radar-heading">
-        <div>
-          <p class="eyebrow">MON_01</p>
-          <h1>AIRSPACE MONITOR <span class="scope-live"><i></i>LIVE SWEEP</span></h1>
-        </div>
-        
-        <div class="radar-meta">
-          <span>RANGE: <strong id="radar-range-label">40 NM</strong></span>
-          <span>SIM_RATE: <strong id="sim-rate-label">1.0x</strong></span>
-          <label for="speed-select">
-            <span>ENV_LIGHT:</span>
-            <select id="speed-select">
-              <option value="day">Day</option>
-              <option value="dusk">Dusk</option>
-              <option value="night">Night</option>
-            </select>
-          </label>
-        </div>
-      </div>
-
-      <!-- RADAR WAVE PLOT CORE -->
-      <div class="radar-wrap" id="radar-scope-container">
-        <span class="radar-compass compass-n">N 000°</span>
-        <span class="radar-compass compass-s">S 180°</span>
-        <span class="radar-compass compass-e">E 090°</span>
-        <span class="radar-compass compass-w">W 270°</span>
-        <canvas id="radar"></canvas>
-        <span class="radar-range" id="range-ring-tag">40 NM</span>
-      </div>
-
-      <!-- SYSTEM METRIC FOOTNOTE STRIPS -->
-      <div class="radar-lower">
-        <div class="safety-banner safe" id="safety-banner">
-          <div class="safety-icon">!</div>
-          <p id="safety-message">No modeled conflicts. Traffic continues while you manage the shift.</p>
-        </div>
-        
-        <div class="learning-tip">
-          <p id="tip-box">PRIMARY RADAR DEVIATION SCOPE</p>
-        </div>
-      </div>
-    </div>
-
-    <!-- DATA MATRIX AND PROCESSING PANELS -->
-    <div class="ops-column">
-      
-      <!-- TRAFFIC PROCESSING QUEUE -->
-      <section class="panel traffic-panel">
-        <div class="panel-heading">
-          <h2>ACTIVE TRAFFIC QUEUE</h2>
-          <span class="threshold-tag" id="queue-count">0 / 4</span>
-        </div>
-        <div class="traffic-list" id="traffic-list">
-          <!-- Populated by script processing nodes -->
-        </div>
-        <div class="selected-detail" id="selected-flight-summary">
-          <strong>COMMAND SYSTEM INTERFACE</strong>
-          <p id="flight-placeholder">Select an active vehicle file pattern from the telemetry tracking matrix above to issue vector routing corrections.</p>
-        </div>
-      </section>
-
-      <!-- METEOROLOGICAL LIVE DATA FEED STRIP -->
-      <section class="panel weather-strip" id="weather-banner">
-        <div>
-          <span>WEATHER</span>
-          <strong id="wx-cond">CLEAR</strong>
-        </div>
-        <div>
-          <span>WIND</span>
-          <strong id="wx-wind">CALM</strong>
-        </div>
-        <div>
-          <span>VISIBILITY</span>
-          <strong id="wx-vis">10 SM</strong>
-        </div>
-        <p>RESOURCE LOG ENGINE</p>
-      </section>
-
-      <!-- EFFICIENCY AND PERFORMANCE MONITOR MODULE -->
-      <section class="panel performance-panel">
-        <div class="metric-grid">
-          <div>
-            <span>EST_DISTANCE</span>
-            <strong id="metric-dist">0.0 NM</strong>
-          </div>
-          <div>
-            <span>EST_FUEL_BURN</span>
-            <strong id="metric-fuel">0 kg</strong>
-          </div>
-          <div>
-            <span>CO2_EMISSION</span>
-            <strong id="metric-co2">0 kg</strong>
-          </div>
-        </div>
-        <div class="shift-metrics" id="shift-metrics-summary">
-          <!-- Dynamic continuous analytic data logs -->
-        </div>
-        <p class="estimate-disclaimer">Aircraft, separation checks, fuel, and emissions are simulated estimates, not operational guidance.</p>
-      </section>
-
-    </div>
-  </main>
-
-  <!-- AIRFIELD TOWER ROOM FRAME INTERCEPTOR WINDOWS -->
-  <div class="tower-room">
+  <div class="tower-room" aria-hidden="true">
     <div class="tower-window">
       <canvas id="airport-view"></canvas>
       <div class="window-mullion window-mullion-left"></div>
       <div class="window-mullion window-mullion-center"></div>
       <div class="window-mullion window-mullion-right"></div>
       <div class="window-crossbar"></div>
-      <span class="window-caption">VISUAL APERTURE FEED // LIVE</span>
+      <span class="window-caption">FIELD VIEW · SIMULATED AIRPORT</span>
     </div>
     <div class="tower-side tower-side-left"></div>
     <div class="tower-side tower-side-right"></div>
   </div>
+  <header class="topbar">
+    <a class="brand" href="#" aria-label="Tower Control Airspace Training">
+      <span class="brand-mark" aria-hidden="true">TC</span>
+      <span>TOWER CONTROL<small>SIMULATED AIRPORT OPERATIONS</small></span>
+    </a>
+    <div class="shift-status"><span>LIVE SHIFT</span><strong>Manage airport traffic and keep flights safely separated.</strong></div>
+    <div class="score-counter" aria-live="polite"><span>SCORE</span><strong id="shift-score">0</strong></div>
+    <label class="time-picker">VIEW
+      <select id="time-of-day" aria-label="Airport lighting">
+        <option value="day">Day</option>
+        <option value="sunset">Sunset</option>
+        <option value="night">Night</option>
+      </select>
+    </label>
+    <div class="header-actions">
+  <button class="button" id="open-tutorial" type="button">Help</button>
+  <button class="button" id="open-rules" type="button">Rules</button>
+  <button class="button button-primary" id="pause-button" type="button" aria-pressed="false">Pause</button>
+  <button class="button" id="shift-report" type="button">Shift report</button>
+  <button class="button" id="restart-button" type="button">Restart shift</button>
+</div>
+  </header>
 
-  <div class="tower-desk">
-    <div class="desk-surface"></div>
-    <div class="desk-front"></div>
-    <div class="desk-mouse"></div>
+  <main class="tower-console" aria-label="Air traffic control tower workstation">
+    <div class="monitor-bank">
+      <section class="monitor monitor-radar" aria-labelledby="radar-monitor-label">
+        <div class="monitor-label" id="radar-monitor-label"><span>01</span>RADAR</div>
+        <div class="monitor-screen">
+    <section class="radar-card" aria-labelledby="radar-title" data-tutorial="radar">
+      <div class="radar-heading">
+        <div><h1 id="radar-title">Radar<span class="scope-live"><i></i> ACTIVE</span></h1></div>
+        <div class="radar-meta"><span>SIM <strong id="sim-clock">00:00</strong></span><label>RATE <select id="speed-select" aria-label="Simulation speed"><option value="15">15×</option><option value="30" selected>30×</option><option value="60">60×</option></select></label><label>RANGE <select id="radar-range" aria-label="Radar range"><option value="20">20 NM</option><option value="40" selected>40 NM</option><option value="60">60 NM</option></select></label></div>
+      </div>
+      <div class="radar-wrap">
+        <canvas id="radar" role="img" tabindex="0" aria-label="Synthetic aircraft radar with a labelled AIRPORT taxi point. Select aircraft symbols to inspect them."></canvas>
+        <span class="radar-compass compass-n">N</span><span class="radar-compass compass-e">E</span>
+        <span class="radar-compass compass-s">S</span><span class="radar-compass compass-w">W</span>
+        <span class="radar-range">10 NM</span>
+      </div>
+      <div class="radar-legend">
+        <span><i class="legend-plane"></i> Active flight</span>
+        <span><i class="legend-airport"></i> Airport taxi point</span>
+        <span><i class="legend-route"></i> Filed route</span>
+        <span><i class="legend-projection"></i> Predicted track</span>
+        <span><i class="legend-alert"></i> Conflict alert</span>
+        <span><i class="legend-selection"></i> Selected flight</span>
+      </div>
+      <div class="radar-lower">
+        <div class="safety-banner" id="safety-banner" aria-live="polite"><i class="safety-icon" aria-hidden="true">!</i><span id="safety-text">Scanning predicted separation…</span></div>
+        <div class="learning-tip" aria-live="polite"><span class="eyebrow">FLIGHT NOTE</span><p id="learning-tip">A heading is the direction an aircraft points, measured clockwise from north.</p></div>
+      </div>
+    </section>
+        </div>
+      </section>
+
+      <section class="monitor monitor-operations" aria-labelledby="operations-monitor-label">
+        <div class="monitor-label" id="operations-monitor-label"><span>02</span>OPERATIONS</div>
+        <div class="monitor-screen operations-screen">
+      <section class="panel traffic-panel" data-tutorial="traffic">
+        <div class="panel-heading">
+  <h2>Flights <span id="aircraft-count">0 / 4</span></h2>
+</div>
+        <div class="traffic-list" id="traffic-list" role="listbox" aria-label="Select aircraft"></div>
+        <div class="selected-detail" id="selected-detail" aria-live="polite"></div>
+      </section>
+
+      <section class="panel flight-actions-panel" data-tutorial="flight-actions">
+<div class="panel-heading small-heading">
+  <h2>Controls</h2>
+</div>        <div class="aircraft-actions" id="aircraft-actions" aria-label="Available actions for the selected aircraft"></div>
+<p class="action-feedback" id="action-feedback" aria-live="polite">Select a flight.</p>      </section>
+      <section class="weather-strip" aria-label="Simulated weather" data-tutorial="weather">
+      <div><span>WEATHER</span><strong id="weather-condition">CLEAR</strong></div>
+      <div><span>WIND</span><strong id="weather-wind">CALM</strong></div>
+      <div><span>VISIBILITY</span><strong id="weather-visibility">10 NM</strong></div>
+        <p id="weather-warning" aria-live="polite">No active weather advisories.</p>
+      </section>
+      <section class="panel sustainability-panel" data-tutorial="sustainability">
+<div class="panel-heading small-heading">
+  <h2>Flight totals</h2>
+</div>        <div class="sustainability-mini">
+          <div><span>DISTANCE</span><strong id="total-distance">0.0 NM</strong></div>
+          <div><span>EST. FUEL</span><strong id="total-fuel">0 kg</strong></div>
+          <div><span>EST. CO₂</span><strong id="total-co2">0 kg</strong></div>
+        </div>
+        <div class="shift-metrics" id="shift-metrics"></div>
+      </section>
+        </div>
+      </section>
+    </div>
+    <div class="tower-desk" aria-hidden="true">
+      <div class="desk-surface"></div>
+      <div class="desk-front"></div>
+      <div class="desk-mouse"></div>
+    </div>
+  </main>
+<div class="crash-cutscene" id="crash-cutscene" hidden aria-hidden="true">
+  <div class="crash-scanlines"></div>
+  <div class="crash-status">TOWER CONTROL // INCIDENT REPORT</div>
+
+  <div class="crash-scene">
+    <div class="crash-cloud crash-cloud-one"></div>
+    <div class="crash-cloud crash-cloud-two"></div>
+    <div class="crash-plane crash-plane-one" aria-hidden="true">✈</div>
+<div class="crash-plane crash-plane-two" aria-hidden="true">✈</div>
+    <div class="crash-explosion" aria-hidden="true">✹</div>
+    <div class="crash-impact">SIGNAL LOST</div>
   </div>
 
-  <!-- INTERACTIVE DIALOG MODAL LAYOUTS -->
-  <dialog class="rules-dialog" id="rules-dialog">
-    <div class="results-header">
-      <h2>OPERATIONAL STANDARD DIRECTIVES</h2>
-    </div>
-    <ul class="rules-list" id="rules-list-container">
-      <!-- Directives structurally parsed out here -->
-    </ul>
-    <div class="header-actions" style="margin-top:14px; justify-content:flex-end;">
-      <button class="button button-primary" onclick="document.getElementById('rules-dialog').close()">Close Directive Log</button>
-    </div>
+  <h1 class="crash-title">YOU FAILED</h1>
+  <p class="crash-subtitle">FLIGHT SAFETY COMPROMISED</p>
+  <div class="crash-progress"><span></span></div>
+</div>
+  <dialog class="results-dialog" id="results-dialog" aria-labelledby="results-title">
+    <div class="results-header"><div><p class="eyebrow" id="results-kicker">SHIFT SUMMARY</p><h2 id="results-title">Sector review</h2></div><button class="button button-small" id="close-results" type="button">Close</button></div>
+    <p id="results-summary" class="results-summary"></p>
+    <div class="results-grid" id="results-grid"></div>
+    <div class="results-note"><p id="results-feedback"></p></div>
+    <p class="results-caveat" id="results-caveat">Aircraft, separation checks, fuel, and emissions are simulated estimates, not operational guidance.</p>
+    <button class="button button-primary" id="play-again" type="button">RESTART SHIFT</button>
   </dialog>
-
-  <dialog class="results-dialog" id="results-dialog">
+  <aside class="emergency-alert" id="emergency-alert" role="alertdialog" aria-modal="true" aria-labelledby="emergency-title" aria-describedby="emergency-message" hidden>
+    <div class="emergency-heading"><strong id="emergency-title">CRITICAL RESPONSE</strong><span id="emergency-clock">10</span></div>
+    <p id="emergency-message">Review the affected aircraft and the simulated danger area.</p>
+    <p class="emergency-instruction">TYPE THIS COMMAND</p>
+    <code id="emergency-required-command">HOLD AC102</code>
+    <form class="emergency-form" id="emergency-form">
+      <label for="emergency-command-input">Emergency command</label>
+      <input id="emergency-command-input" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-describedby="emergency-feedback">
+      <button class="button button-primary" type="submit">Submit command</button>
+    </form>
+    <p id="emergency-feedback" class="emergency-feedback" aria-live="polite"></p>
+    <p class="emergency-footnote">Traffic is paused while this 10-second real-time response window is open.</p>
+  </aside>
+  <div class="tutorial-overlay" id="tutorial-overlay" hidden>
+    <svg class="tutorial-connector" id="tutorial-connector" aria-hidden="true"><path id="tutorial-connector-path"></path></svg>
+    <section class="tutorial-card" role="dialog" aria-modal="true" aria-labelledby="tutorial-title">
+      <div class="tutorial-kicker" id="tutorial-progress">WELCOME</div>
+      <h2 id="tutorial-title">WELCOME TO TOWER CONTROL</h2>
+      <p id="tutorial-copy">Would you like a quick tutorial before starting?</p>
+      <div class="tutorial-actions" id="tutorial-welcome-actions">
+        <button class="button button-primary" id="tutorial-start" type="button">START TUTORIAL</button>
+        <button class="button" id="tutorial-skip-welcome" type="button">SKIP TUTORIAL</button>
+      </div>
+      <div class="tutorial-actions" id="tutorial-step-actions" hidden>
+        <button class="button" id="tutorial-back" type="button">Back</button>
+        <button class="button" id="tutorial-skip" type="button">Skip</button>
+        <button class="button button-primary" id="tutorial-next" type="button">Next</button>
+      </div>
+    </section>
+  </div>
+  <dialog class="rules-dialog" id="rules-dialog" aria-labelledby="rules-title">
     <div class="results-header">
-      <h2>SHIFT PERFORMANCE COMPILATION DEBRIEF</h2>
+      <div><p class="eyebrow">QUICK REFERENCE</p><h2 id="rules-title">Tower Control rules</h2></div>
+      <button class="button button-small" id="close-rules" type="button">Close</button>
     </div>
-    <div class="results-grid" id="results-content">
-      <!-- Final values mapped cleanly here -->
-    </div>
-    <div class="header-actions" style="margin-top:14px; justify-content:flex-end;">
-      <button class="button button-primary" id="btn-restart-summary">Initialize New Operations Shift</button>
-    </div>
+    <ol class="rules-list">
+      <li><strong>You are the controller.</strong> Select aircraft and manage them with the available flight-control buttons.</li>
+      <li><strong>Manage up to four local aircraft.</strong> Track their positions and statuses.</li>
+      <li><strong>You choose departures.</strong> Weather and runway demand are checked before a gate release; released aircraft taxi before using the runway.</li>
+      <li><strong>Watch the radar.</strong> Flights may conflict in the air or compete for the runway.</li>
+      <li><strong>Ordinary conflicts are yours to assess.</strong> Inspect the traffic and choose a flight-control action.</li>
+      <li><strong>Critical emergencies pause traffic.</strong> Type the displayed response within ten real-time seconds. An incorrect command does not reset the timer.</li>
+      <li><strong>Weather changes the situation.</strong> Keep traffic clear of simulated hazards.</li>
+      <li><strong>Collisions end the shift.</strong> Collision checks use simplified game rules.</li>
+      <li><strong>Safety comes first.</strong> A shorter route is never worth a modeled conflict or hazard.</li>
+      <li><strong>Sustainability matters.</strong> Detours and delays can increase estimated fuel and CO₂.</li>
+      <li><strong>Reset starts fresh.</strong> Aircraft, weather, routes, alerts, and timers return to the start.</li>
+      <li><strong>Review each shift.</strong> Use the report to learn from your decisions.</li>
+    </ol>
   </dialog>
-
-  <script src="script.js"></script>
+  <div id="live-message" class="sr-only" aria-live="polite"></div>
 </body>
 </html>
