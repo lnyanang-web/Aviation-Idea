@@ -1828,3 +1828,77 @@ body {
   font-size: 10px;
   line-height: 1.45;
 }
+/* Simple radar: retain range rings and aircraft, remove decorative grid. */
+.radar-legend {
+  gap: 8px 16px;
+  background: #0b121a;
+  color: #9aa9b8;
+}
+
+.radar-wrap {
+  background: #08111a;
+}
+
+#radar {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* Runway selection controls inside the existing right monitor. */
+.aircraft-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  padding: 10px;
+}
+
+.runway-choice {
+  flex: 1 1 100px;
+  min-height: 40px;
+  padding: 8px 10px;
+  border: 1px solid #293849;
+  border-radius: 2px;
+  background: #101a25;
+  color: #d6e0e9;
+  font: 10px/1.4 var(--mono);
+  text-align: left;
+}
+
+.runway-choice:hover:not(:disabled) {
+  border-color: #79c9e4;
+  background: #152532;
+}
+
+.runway-choice:disabled {
+  border-color: #30313a;
+  color: #82909d;
+  opacity: 0.7;
+}
+
+.runway-choice .runway-state {
+  display: block;
+  margin-top: 3px;
+  color: #75c49a;
+  font-size: 9px;
+}
+
+.runway-choice:disabled .runway-state {
+  color: #e5b35f;
+}
+
+.runway-choice:focus-visible {
+  outline: 2px solid #79c9e4;
+  outline-offset: 2px;
+}
+
+/* Subdued, consistent airport and runway surfaces. */
+.weather-strip {
+  border-color: #1e2638;
+}
+
+@media (max-width: 760px) {
+  .runway-choice {
+    flex-basis: 85px;
+  }
+}
