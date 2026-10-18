@@ -64,18 +64,6 @@
   };
   const AIRPORT_POINT = { x: 0, y: -11 };
   const RUNWAY_POINT = AIRPORT_POINT;
-  const RUNWAY_COOLDOWN_MS = 20_000;
-
-const RUNWAYS = [
-  { id: "09", x: -2.5, y: -11, heading: 90, screenX: 0.24 },
-  { id: "18", x: 0, y: -11, heading: 0, screenX: 0.50 },
-  { id: "27", x: 2.5, y: -11, heading: 270, screenX: 0.76 }
-];
-
-const runwayAvailableAt = new Map(
-  RUNWAYS.map((runway) => [runway.id, 0])
-);
-  
   const SHIFT_DEPARTURES = [
     { id: "AC102", gate: -16, route: ["ALPHA", "NEWYORK"], altitude: 18000, speed: 240, airline: "Northstar Air", type: "A320", origin: "HOME" },
     { id: "AC205", gate: 16, route: ["BRAVO", "VANCOUVER"], altitude: 18000, speed: 240, airline: "Pacific Link", type: "B737", origin: "HOME" },
@@ -621,16 +609,25 @@ function resetShift() {
     crashCutscene.classList.remove("playing");
 
     state.aircraft = [
-  createDeparture(SHIFT_DEPARTURES[0]),
-  createDeparture(SHIFT_DEPARTURES[1]),
-  createDeparture(SHIFT_DEPARTURES[2]),
-  createDeparture(SHIFT_DEPARTURES[3])
-];
-
-state.completedFlights = [];
+      createDeparture(SHIFT_DEPARTURES[0]),
+      createDeparture(SHIFT_DEPARTURES[1]),
+      createDeparture(SHIFT_DEPARTURES[2]),
+      createArrival(SHIFT_ARRIVALS[0])
+    ];
+  
+    state.completedFlights = [];
+    const taxiing = state.aircraft[2];
+    taxiing.stage = "taxi";
+    taxiing.cleared = true;
+    taxiing.taxiElapsed = 90;
+    taxiing.x = taxiing.gateX + (RUNWAY_POINT.x - taxiing.gateX) * taxiing.taxiElapsed / TAXI_DURATION_SECONDS;
+    taxiing.y = 7 + (RUNWAY_POINT.y - 7) * taxiing.taxiElapsed / TAXI_DURATION_SECONDS;
+    const inbound = state.aircraft[3];
+    inbound.stage = "approach";
+    inbound.cleared = true;
+    inbound.heading = bearing(inbound, currentTarget(inbound));
     state.selectedId = state.aircraft[0]?.id ?? null;
     state.simTime = 0;
-  RUNWAYS.forEach((runway) => runwayAvailableAt.set(runway.id, 0));
     state.airportTime = 0;
     state.realTime = 0;
     state.lastFrame = 0;
@@ -723,64 +720,45 @@ state.completedFlights = [];
             plane.stage = "taxi-safety-hold";
             continue;
           }
-          
-        if (plane.stage === "taxi") {
-          plane.stage = "gate";
-          plane.taxiElapsed = 0;
+          plane.taxiElapsed += dt;
+          const progress = Math.min(1, plane.taxiElapsed / TAXI_DURATION_SECONDS);
+          plane.x = plane.gateX + (RUNWAY_POINT.x - plane.gateX) * progress;
+          plane.y = 7 + (RUNWAY_POINT.y - 7) * progress;
+          plane.heading = bearing({ x: plane.gateX, y: 7 }, RUNWAY_POINT);
+          if (progress >= 1) {
+            plane.stage = "runway";
+            plane.runwayRemaining = RUNWAY_OCCUPANCY_SECONDS;
+            plane.x = RUNWAY_POINT.x;
+            plane.y = RUNWAY_POINT.y;
+          }
           continue;
         }
-
-        if (plane.stage === "taxi-queue" || plane.stage === "taxi-hold") {
-          plane.stage = "gate";
-          plane.taxiElapsed = 0;
-          continue;
-        }
-
-        
         if (plane.stage === "runway") {
           plane.runwayRemaining -= dt;
-
           if (plane.runwayRemaining <= 0) {
             plane.stage = "takeoff";
             plane.takeoffElapsed = 0;
             plane.takeoffOrigin = { x: plane.x, y: plane.y };
-
-            const runway = RUNWAYS.find(
-              (item) => item.id === plane.runwayId
-            );
-            plane.takeoffHeading = runway?.heading ?? 0;
           }
-
           continue;
         }
-
         if (plane.stage === "takeoff") {
           plane.takeoffElapsed += dt;
-
-          const progress = Math.min(
-            1,
-            plane.takeoffElapsed / TAKEOFF_DURATION_SECONDS
-          );
-          const heading = (plane.takeoffHeading ?? 0) * Math.PI / 180;
-          const distance = progress * 4;
-
-          plane.x = plane.takeoffOrigin.x + Math.sin(heading) * distance;
-          plane.y = plane.takeoffOrigin.y - Math.cos(heading) * distance;
-
+          const progress = Math.min(1, plane.takeoffElapsed / TAKEOFF_DURATION_SECONDS);
+          plane.x = plane.takeoffOrigin.x + progress * 2.5;
+          plane.y = plane.takeoffOrigin.y + progress * 3.5;
           if (progress >= 1) {
             plane.stage = "airborne";
             plane.altitude = 600;
             plane.targetAltitude = plane.cruiseAltitude;
-            plane.heading = plane.takeoffHeading ?? 0;
+            plane.heading = bearing(plane, currentTarget(plane) || plane);
             plane.departed = true;
             state.departures += 1;
-
             if (isSafeFlightEvent(plane)) {
               state.safeDepartures += 1;
               awardPoints(25);
             }
           }
-
           continue;
         }
         if (plane.stage === "landing") {
@@ -874,26 +852,20 @@ state.completedFlights = [];
     }
   }
 
- 
-function scheduleTraffic() {
-  archiveCompletedFlights();
-
-  while (state.simTime >= state.nextTrafficAt) {
-    if (state.aircraft.length < MAX_LOCAL_AIRCRAFT) {
-      const slot = state.scheduledIndex++;
-      const template = SHIFT_DEPARTURES[(slot + 4) % SHIFT_DEPARTURES.length];
-      const generated = createDeparture(template);
-
-      generated.id = `AC${String(700 + slot).padStart(3, "0")}`;
-      state.aircraft.push(generated);
+  function scheduleTraffic() {
+    archiveCompletedFlights();
+    while (state.simTime >= state.nextTrafficAt) {
+      if (state.aircraft.length < MAX_LOCAL_AIRCRAFT) {
+        const slot = state.scheduledIndex++;
+        const generated = slot % 2 === 0
+          ? createArrival(SHIFT_ARRIVALS[slot % SHIFT_ARRIVALS.length])
+          : createDeparture(SHIFT_DEPARTURES[(slot + 3) % SHIFT_DEPARTURES.length]);
+        generated.id = `${generated.departure ? "AC" : "IN"}${String(700 + slot).padStart(3, "0")}`;
+        state.aircraft.push(generated);
+      }
+      state.nextTrafficAt += Math.max(65, 175 - Math.floor(state.simTime / 140) * 16);
     }
-
-    state.nextTrafficAt += Math.max(
-      65,
-      175 - Math.floor(state.simTime / 140) * 16
-    );
   }
-}
 
   function archiveCompletedFlights() {
     const completed = state.aircraft.filter((plane) => plane.arrived || plane.stage === "parked");
@@ -1145,64 +1117,18 @@ function scheduleTraffic() {
     );
   }
 
-  
-function authorizeDeparture(plane) {
-  plane.cleared = true;
-  plane.taxiElapsed = 0;
-  plane.cruiseAltitude = plane.targetAltitude;
-
-  if (runwayPathBusy(plane)) {
-    plane.stage = "taxi-queue";
-    plane.taxiQueueOrder = state.nextTaxiQueueOrder++;
-    return `${plane.id} authorized and waiting in the taxi queue.`;
+  function authorizeDeparture(plane) {
+    plane.cleared = true;
+    plane.taxiElapsed = 0;
+    plane.cruiseAltitude = plane.targetAltitude;
+    if (runwayPathBusy(plane)) {
+      plane.stage = "taxi-queue";
+      plane.taxiQueueOrder = state.nextTaxiQueueOrder++;
+      return `${plane.id} authorized and waiting in the taxi queue.`;
+    }
+    plane.stage = "taxi";
+    return `${plane.id} authorized and taxiing toward AIRPORT.`;
   }
-
-  plane.stage = "taxi";
-  return `${plane.id} authorized and taxiing toward AIRPORT.`;
-}
-
-function dispatchOnRunway(plane, runwayId) {
-  const runway = RUNWAYS.find((item) => item.id === runwayId);
-
-  if (!runway || !plane || plane.stage !== "gate") return;
-
-  const availableAt = runwayAvailableAt.get(runwayId) ?? 0;
-
-  if (
-    state.paused ||
-    state.finished ||
-    state.departuresPaused ||
-    state.simTime < availableAt
-  ) {
-    return;
-  }
-
-  const reason = departureBlockReason(plane);
-
-  if (reason) {
-    setMessage(reason, "warning");
-    renderUI();
-    return;
-  }
-
-  plane.cleared = true;
-  plane.cruiseAltitude = plane.targetAltitude;
-  plane.runwayId = runwayId;
-  plane.x = runway.x;
-  plane.y = runway.y;
-  plane.stage = "runway";
-  plane.runwayRemaining = 0;
-
-  runwayAvailableAt.set(runwayId, state.simTime + 20);
-
-  setMessage(
-    `${plane.id} cleared for departure on runway ${runwayId}.`,
-    "success"
-  );
-  renderUI();
-}
-
-
 
   function startNextQueuedDeparture() {
     if (state.aircraft.some((plane) => plane.stage === "taxi")) return;
@@ -1383,7 +1309,67 @@ function dispatchOnRunway(plane, runwayId) {
     return button;
   }
 
- function authorizeDeparture(plane)
+  function renderAircraftActions() {
+    const holder = $("aircraft-actions");
+    const plane = getPlane(state.selectedId);
+    const reason = plane?.stage === "gate" || plane?.stage === "holding"
+      ? departureBlockReason(plane)
+      : "";
+    const queuePosition = plane?.stage === "taxi-queue" ? taxiQueuePosition(plane) : 0;
+    const key = `${plane?.id || "none"}:${plane?.stage || "none"}:${queuePosition}:${plane?.routeIndex ?? ""}:${plane?.route.length ?? ""}:${reason}:${state.departuresPaused}:${state.paused}:${state.finished}`;
+    if (holder.dataset.renderKey === key) return;
+    holder.dataset.renderKey = key;
+    holder.replaceChildren();
+    if (!plane) {
+      const empty = document.createElement("p");
+      empty.className = "empty-actions";
+      empty.textContent = "No active aircraft. New simulated traffic will enter when a slot is available.";
+      holder.append(empty);
+      return;
+    }
+    let action = null;
+    if (plane.stage === "gate") {
+      const reason = departureBlockReason(plane);
+      action = { label: "AUTHORIZE TAKEOFF", command: `DEPART ${plane.id}`, reason, primary: true };
+    } else if (plane.stage === "taxi") {
+      action = { label: "Hold taxi", command: `HOLD ${plane.id}` };
+    } else if (plane.stage === "taxi-hold") {
+      action = { label: "Resume taxi", command: `DEPART ${plane.id}`, primary: true };
+    } else if (plane.stage === "holding") {
+      const reason = departureBlockReason(plane);
+      action = { label: "Authorize approach", command: `ARRIVAL ${plane.id}`, reason, primary: true };
+    } else if (["airborne", "approach"].includes(plane.stage)) {
+      action = { label: "Hold current course", command: `HOLD ${plane.id}` };
+    }
+    if (action) {
+      addActionButton(holder, action.label, action.command, {
+        primary: action.primary,
+        disabled: Boolean(action.reason),
+        title: action.reason || action.label
+      });
+      const note = document.createElement("span");
+      note.className = action.reason ? "action-note blocked" : "action-note";
+      note.textContent = action.reason || `Route: ${plane.origin} → ${plane.destinationName}`;
+      holder.append(note);
+    } else {
+      const note = document.createElement("span");
+      note.className = "action-note";
+      note.textContent = `${stageLabel(plane)} · ${plane.origin} → ${plane.destinationName}`;
+      holder.append(note);
+    }
+    if (plane.stage === "airborne" && directRouteCandidate(plane)) {
+      addActionButton(holder, "Shorten route safely", () => applyEfficientRoute(plane), {
+        title: "Remove an unnecessary waypoint when the shorter route remains clear of conflicts and storms."
+      });
+    }
+    if (state.departuresPaused) {
+      addActionButton(holder, "Resume departures", () => {
+        state.departuresPaused = false;
+        setMessage("Departures resumed.", "success");
+        renderUI();
+      });
+    }
+  }
 
   function stageLabel(plane) {
     if (plane.stage === "taxi-queue") return `TAXI QUEUE #${taxiQueuePosition(plane)}`;
@@ -1541,9 +1527,11 @@ function dispatchOnRunway(plane, runwayId) {
       drawTerminal(ctx, width, height, airportLighting);
       drawHangar(ctx, width * 0.08, horizon * 0.95, width * 0.12, height * 0.12, airportLighting);
       drawHangar(ctx, width * 0.83, horizon * 0.94, width * 0.105, height * 0.095, airportLighting);
+      drawTaxiways(ctx, width, height, airportLighting);
       drawRunway(ctx, width, height, airportLighting);
       drawWindsock(ctx, width * 0.19, horizon * 1.04, height * 0.12, airportLighting, timestamp);
       drawWeatherOutside(ctx, width, height, timestamp);
+      drawTaxiingAircraft(ctx, width, height);
     }
 
     function drawTaxiingAircraft(ctx, width, height) {
@@ -1557,24 +1545,17 @@ function dispatchOnRunway(plane, runwayId) {
           x = 0.5 + (plane.gateX / 28 * 0.38) * (1 - progress);
           y = 0.86 - 0.25 * progress;
         } else if (plane.stage === "runway") {
-  const runway = RUNWAYS.find((item) => item.id === plane.runwayId);
-  x = runway?.screenX ?? 0.5;
-  y = 0.61;
-} else {
-  const runway = RUNWAYS.find((item) => item.id === plane.runwayId);
-  const runwayX = runway?.screenX ?? 0.5;
-  const progress = Math.min(1, plane.takeoffElapsed / TAKEOFF_DURATION_SECONDS);
-  x = runwayX + (runway?.heading === 90 ? 1 : runway?.heading === 270 ? -1 : 0) * progress * 0.2;
-  y = 0.61 - (runway?.heading === 0 ? 1 : 0) * progress * 0.2;
-  scale *= 1 - progress * 0.35;
-}
+          x = 0.5;
+          y = 0.61;
+        } else {
+          const progress = Math.min(1, plane.takeoffElapsed / TAKEOFF_DURATION_SECONDS);
+          x = 0.5 - progress * 0.025;
+          y = 0.61 - progress * 0.2;
+          scale *= 1 - progress * 0.35;
+        }
         const centerX = x * width;
         const centerY = y * height;
         ctx.save();
-        const runway = RUNWAYS.find((item) => item.id === plane.runwayId);
-if (plane.stage === "runway" || plane.stage === "takeoff") {
-  ctx.rotate(((runway?.heading ?? 0) * Math.PI) / 180);
-}
         ctx.translate(centerX, centerY);
         ctx.fillStyle = "#24323b";
         ctx.beginPath();
@@ -1732,85 +1713,47 @@ if (plane.stage === "runway" || plane.stage === "takeoff") {
     }
 
     function drawRunway(ctx, width, height, mode) {
-  const night = mode === "night";
-  const topY = height * 0.58;
-  const bottomY = height * 1.08;
-
-  const runways = [
-    { id: "09", topX: width * 0.24, bottomX: width * 0.22 },
-    { id: "18", topX: width * 0.50, bottomX: width * 0.50 },
-    { id: "27", topX: width * 0.76, bottomX: width * 0.78 }
-  ];
-
-  runways.forEach((runway) => {
-    const topHalf = width * 0.012;
-    const bottomHalf = width * 0.055;
-
-    // Runway surface
-    ctx.fillStyle = night ? "#222a30" : "#465157";
-    ctx.beginPath();
-    ctx.moveTo(runway.topX - topHalf, topY);
-    ctx.lineTo(runway.topX + topHalf, topY);
-    ctx.lineTo(runway.bottomX + bottomHalf, bottomY);
-    ctx.lineTo(runway.bottomX - bottomHalf, bottomY);
-    ctx.closePath();
-    ctx.fill();
-
-    // Runway edges
-    ctx.strokeStyle = night ? "#d4d7c2" : "#e8e8dc";
-    ctx.lineWidth = Math.max(1, width * 0.0015);
-    ctx.beginPath();
-    ctx.moveTo(runway.topX - topHalf, topY);
-    ctx.lineTo(runway.bottomX - bottomHalf, bottomY);
-    ctx.moveTo(runway.topX + topHalf, topY);
-    ctx.lineTo(runway.bottomX + bottomHalf, bottomY);
-    ctx.stroke();
-
-    // Centreline markings
-    ctx.setLineDash([width * 0.009, width * 0.012]);
-    ctx.lineWidth = Math.max(1, width * 0.002);
-    ctx.beginPath();
-    ctx.moveTo(runway.topX, topY + height * 0.015);
-    ctx.lineTo(runway.bottomX, height * 1.02);
-    ctx.stroke();
-    ctx.setLineDash([]);
-
-    // Runway edge lights
-    for (let index = 0; index < 12; index += 1) {
-      const t = index / 12;
-      const y = topY + (bottomY - topY) * t;
-      const centerX = runway.topX + (runway.bottomX - runway.topX) * t;
-      const spread = topHalf + (bottomHalf - topHalf) * t;
-      const radius = Math.max(1, width * (0.001 + t * 0.001));
-
-      ctx.fillStyle = night ? "#c3d9e8" : "#e9e6cf";
-
-      [-1, 1].forEach((side) => {
+      const nearX = width * 0.57;
+      const farX = width * 0.49;
+      ctx.fillStyle = mode === "night" ? "#222a30" : "#465157";
+      ctx.beginPath();
+      ctx.moveTo(farX - width * 0.018, height * 0.58);
+      ctx.lineTo(farX + width * 0.018, height * 0.58);
+      ctx.lineTo(nearX + width * 0.15, height * 1.08);
+      ctx.lineTo(nearX - width * 0.15, height * 1.08);
+      ctx.closePath();
+      ctx.fill();
+      ctx.strokeStyle = mode === "night" ? "#d4d7c2" : "#e8e8dc";
+      ctx.lineWidth = Math.max(1, width * 0.002);
+      ctx.setLineDash([width * 0.012, width * 0.014]);
+      ctx.beginPath();
+      ctx.moveTo(farX, height * 0.59);
+      ctx.lineTo(nearX, height * 1.02);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      for (let index = 0; index < 12; index += 1) {
+        const t = index / 12;
+        const y = height * (0.6 + t * 0.39);
+        const spread = width * (0.019 + t * 0.125);
+        const center = farX + (nearX - farX) * t;
+        ctx.fillStyle = mode === "night" ? "#c3d9e8" : "#e9e6cf";
+        for (const side of [-1, 1]) {
+          ctx.beginPath();
+          ctx.arc(center + side * spread, y, Math.max(1, width * (0.0011 + t * 0.001)), 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+      if (["RAIN", "THUNDERSTORM"].includes(state.weather.condition)) {
+        ctx.strokeStyle = "rgba(185, 211, 219, .28)";
+        ctx.lineWidth = Math.max(1, width * .003);
         ctx.beginPath();
-        ctx.arc(centerX + side * spread, y, radius, 0, Math.PI * 2);
-        ctx.fill();
-      });
+        ctx.moveTo(farX - width * .006, height * .61);
+        ctx.lineTo(nearX - width * .045, height * .91);
+        ctx.moveTo(farX + width * .007, height * .62);
+        ctx.lineTo(nearX + width * .055, height * .94);
+        ctx.stroke();
+      }
     }
-
-    // Runway designation near the far end
-    ctx.fillStyle = night ? "#e8e8dc" : "#f5f2e5";
-    ctx.font = `bold ${Math.max(9, width * 0.012)}px monospace`;
-    ctx.textAlign = "center";
-    ctx.fillText(runway.id, runway.topX, topY + height * 0.035);
-  });
-
-  // Rain and storm streaks
-  if (["RAIN", "THUNDERSTORM"].includes(state.weather.condition)) {
-    ctx.strokeStyle = "rgba(185, 211, 219, .28)";
-    ctx.lineWidth = Math.max(1, width * 0.003);
-    ctx.beginPath();
-    ctx.moveTo(width * 0.12, height * 0.62);
-    ctx.lineTo(width * 0.18, height * 0.91);
-    ctx.moveTo(width * 0.85, height * 0.62);
-    ctx.lineTo(width * 0.80, height * 0.94);
-    ctx.stroke();
-  }
-}
 
     function drawWindsock(ctx, x, y, height, mode, timestamp) {
       ctx.strokeStyle = mode === "night" ? "#9caaad" : "#46534f";
