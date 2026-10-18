@@ -78,13 +78,13 @@
     { id: "IN936", x: -30, y: 12, heading: 110, altitude: 10000, speed: 190, route: ["ECHO"], airline: "Pacific Link", type: "B737", origin: "VANCOUVER" }
   ];
   const TUTORIAL_STEPS = [
-    { selector: null, title: "Your shift", text: "Manage flights using the controls. Critical emergencies require a typed command." },
-    { selector: '[data-tutorial="radar"]', title: "Read the radar", text: "Select aircraft on the radar. Follow routes and watch for conflicts." },
-    { selector: '[data-tutorial="traffic"]', title: "Manage up to four aircraft", text: "Select a flight to view its status. Maximum 4 aircraft at once." },
-    { selector: '[data-tutorial="flight-actions"]', title: "Control flights with buttons", text: "Select a flight and choose an available action. Check runway and weather conditions." },
-    { selector: '[data-tutorial="weather"]', title: "Weather and emergencies", text: "Monitor wind, rain, fog and storms. Critical emergencies pause traffic for 10 seconds." },
-    { selector: '[data-tutorial="sustainability"]', title: "Sustainability and routes", text: "View estimated distance, fuel and CO₂. Safety comes first." },
-    { selector: ".score-counter", title: "Scoring", text: "Earn points for safe play, completed flights, resolved emergencies and safe route improvements." }
+    { selector: null, title: "Your shift", text: "Manage a continuous flow of flights with buttons. Typing is used only when a critical emergency pauses the simulation." },
+    { selector: '[data-tutorial="radar"]', title: "Read the radar", text: "Aircraft symbols and callsigns show traffic. The AIRPORT marker shows where authorized departures taxi to the runway; only one departure uses that route at a time." },
+    { selector: '[data-tutorial="traffic"]', title: "Manage up to four aircraft", text: "Select a flight to inspect its status. The local airport holds a maximum of four aircraft; new traffic enters as a slot becomes available." },
+    { selector: '[data-tutorial="flight-actions"]', title: "Control flights with buttons", text: "Choose a flight, then authorize its departure or approach when the runway and weather allow it. Aircraft move through taxi, takeoff, flight, and landing stages." },
+    { selector: '[data-tutorial="weather"]', title: "Weather and emergencies", text: "Rain, fog, wind, and storm cells affect flight safety. A critical emergency freezes movement and gives you ten real-time seconds to type the exact response; a timeout ends the shift." },
+    { selector: '[data-tutorial="sustainability"]', title: "Sustainability and routes", text: "The panel compares route distance, estimated fuel, and CO₂. A safe route shortcut can reduce the estimate; safety always comes first." },
+    { selector: ".score-counter", title: "Scoring", text: "Earn points for safe active play, successful departures and arrivals, resolving emergencies, and genuinely shortening a safe route. Paused time earns no survival points." }
   ];
   const state = {
     aircraft: [],
@@ -595,26 +595,14 @@
     state.selectedId = id;
     renderUI();
   }
-let crashCutsceneTimer = null;
 
-function resetShift() {
-    if (crashCutsceneTimer !== null) {
-      clearTimeout(crashCutsceneTimer);
-      crashCutsceneTimer = null;
-    }
-
-    const crashCutscene = $("crash-cutscene");
-    crashCutscene.hidden = true;
-    crashCutscene.setAttribute("aria-hidden", "true");
-    crashCutscene.classList.remove("playing");
-
+  function resetShift() {
     state.aircraft = [
       createDeparture(SHIFT_DEPARTURES[0]),
       createDeparture(SHIFT_DEPARTURES[1]),
       createDeparture(SHIFT_DEPARTURES[2]),
       createArrival(SHIFT_ARRIVALS[0])
     ];
-  
     state.completedFlights = [];
     const taxiing = state.aircraft[2];
     taxiing.stage = "taxi";
@@ -1989,32 +1977,25 @@ function resetShift() {
     return "Keep monitoring runway demand and predicted separation as traffic changes.";
   }
 
-  
-function endShift(collision, reason = "") {
+  function endShift(collision, reason = "") {
     if (state.finished) return;
     state.finished = true;
     state.paused = true;
     state.gameOver = collision;
-    state.endReason = reason || (collision
-      ? `Collision involving ${collision.first.id} and ${collision.second.id}.`
-      : "Shift ended.");
-
+    state.endReason = reason || `Collision involving ${collision.first.id} and ${collision.second.id}.`;
     if (collision) {
       state.collisions += 1;
       state.aircraftLost += 2;
     }
-
     state.weatherEmergency = null;
     $("emergency-alert").hidden = true;
     $("emergency-command-input").value = "";
     if ($("results-dialog").open) $("results-dialog").close();
     if ($("rules-dialog").open) $("rules-dialog").close();
     state.reportOpen = false;
-
     const totals = metrics();
     const grade = shiftGrade();
     const duration = formatClock(state.simTime);
-
     $("results-kicker").textContent = "GAME OVER";
     $("results-title").textContent = "Current Shift Report";
     $("results-summary").textContent = state.endReason;
@@ -2032,30 +2013,14 @@ function endShift(collision, reason = "") {
       resultCell("Estimated fuel use", `${Math.round(totals.fuelKg).toLocaleString()} kg`),
       resultCell("Estimated CO₂ emissions", `${Math.round(totals.co2Kg).toLocaleString()} kg`)
     );
-
     $("results-feedback").textContent = `Suggestion: ${shiftSuggestions(collision)}`;
     $("results-caveat").textContent = "Aircraft operations, outcomes, fuel, and emissions are simulated estimates only. This is not operational guidance.";
     $("play-again").textContent = "RESTART SHIFT";
     $("play-again").setAttribute("aria-label", "Restart shift");
     $("pause-button").textContent = "Paused";
     $("pause-button").disabled = true;
-
     renderUI();
-
-    const crashCutscene = $("crash-cutscene");
-    crashCutscene.hidden = false;
-    crashCutscene.setAttribute("aria-hidden", "false");
-    crashCutscene.classList.remove("playing");
-    void crashCutscene.offsetWidth;
-    crashCutscene.classList.add("playing");
-
-    crashCutsceneTimer = setTimeout(() => {
-      crashCutscene.hidden = true;
-      crashCutscene.setAttribute("aria-hidden", "true");
-      crashCutscene.classList.remove("playing");
-      crashCutsceneTimer = null;
-      $("results-dialog").showModal();
-    }, 3000);
+    $("results-dialog").showModal();
   }
 
   function resultCell(label, value) {
