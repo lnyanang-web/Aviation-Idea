@@ -1,4 +1,5 @@
-(() => {
+
+ (() => {
   "use strict";
 
   const $ = (id) => document.getElementById(id);
@@ -22,7 +23,8 @@
   const HAZARD_PERIOD_SECONDS = 25;
   const HAZARD_DURATION_SECONDS = 5;
   const STORM_CROSS_SECONDS = 22;
-  const RETURN_DELAY_SECONDS = 50;
+  const RETURN_DELAY_SECONDS = 5;
+  const FLIGHT_SECONDS = 30;
   const CANCEL_PENALTY = 50;
   const MAX_WRONG_RESPONSES = 3;
   const EMERGENCY_RESPONSE_MS = 10000;
@@ -263,35 +265,40 @@
     return aircraft.route[aircraft.routeIndex] || null;
   }
 
+  // Every 20-second slot is one random event: a thunderstorm, a conflict with a red plane, or harmless rain.
+  function slotEvent(slot) {
+    state.slotEvents ??= {};
+    return state.slotEvents[slot] ??= Math.random() < 0.5 ? "STORM" : "CONFLICT";
+  }
+
   function updateWeather() {
     const clear = { condition: "CLEAR", direction: 270, speed: 0, visibility: 10, warning: "No active weather advisories." };
     const storm = { condition: "THUNDERSTORM", direction: 230, speed: 28, visibility: 2, warning: "Thunderstorms nearby. The marked map area is unsafe for flight." };
-    const hazards = [
-      storm,
-      { condition: "RAIN", direction: 260, speed: 14, visibility: 4, warning: "Rain is reducing visibility; arrival spacing may take longer." },
-      storm,
-      { condition: "CROSSWIND", direction: 240, speed: 22, visibility: 10, warning: "Crosswind is affecting runway approach and ground speed." }
-    ];
-
+    const rain = { condition: "RAIN", direction: 260, speed: 14, visibility: 4, warning: "Rain is reducing visibility. No action needed." };
     const slot = Math.floor(state.simTime / HAZARD_PERIOD_SECONDS);
-    const picked = slot >= 1 ? hazards[(slot - 1) % hazards.length] : null;
+    const picked = slot >= 1 ? ({ STORM: storm, RAIN: rain }[slotEvent(slot)] || null) : null;
     const duration = picked?.condition === "THUNDERSTORM" ? STORM_CROSS_SECONDS : HAZARD_DURATION_SECONDS;
     const elapsed = state.simTime % HAZARD_PERIOD_SECONDS;
-    const active = Boolean(picked) && elapsed < duration;
+    const active = Boolean(picked) && elapsed < duration && state.stormStopped !== slot;
     state.weather = { ...(active ? picked : clear) };
     if (state.weather.condition === "THUNDERSTORM") {
-      // The storm sweeps across the whole map, then the weather returns to normal.
-      const direction = slot % 2 === 0 ? 1 : -1;
-      const lane = 5 * Math.sin(slot * 1.7);
-      const span = 38;
-      const speed = span / STORM_CROSS_SECONDS;
-      state.weather.hazard = {
-        x: direction * (-span / 2 + speed * elapsed),
-        y: lane + 1.5 * Math.sin(elapsed / 3),
-        vx: direction * speed,
-        vy: 0,
-        radius: 5
-      };
+      // Every storm is dangerous: it hunts the nearest airborne plane, so ignoring the alert means a crash.
+      if (state.stormPos?.slot !== slot) {
+        const side = slot % 2 === 0 ? 1 : -1;
+        state.stormPos = { slot, x: -side * 15, y: 6 * Math.sin(slot * 1.7), t: state.simTime };
+      }
+      const pos = state.stormPos;
+      const dt = Math.max(0, Math.min(1, state.simTime - pos.t));
+      pos.t = state.simTime;
+      const prey = state.aircraft
+        .filter((plane) => ["airborne", "approach"].includes(plane.stage) && !plane.arrived)
+        .sort((a, b) => distance(a, pos) - distance(b, pos))[0] || { x: 0, y: 0 };
+      const gap = distance(prey, pos) || 1;
+      const speed = prey.id ? 1.5 : 0.6;
+      const vx = (prey.x - pos.x) / gap * speed;
+      const vy = (prey.y - pos.y) / gap * speed;
+      if (gap > 0.5) { pos.x += vx * dt; pos.y += vy * dt; }
+      state.weather.hazard = { x: pos.x, y: pos.y, vx, vy, radius: 5 };
     } else {
       state.weather.hazard = null;
     }
@@ -332,11 +339,21 @@
       return;
     }
 
+    const hazardNow = state.weather.hazard;
+    const struck = hazardNow && state.aircraft.find((plane) =>
+      ["airborne", "approach"].includes(plane.stage) && distance(plane, hazardNow) < hazardNow.radius * 0.8);
+    if (struck) {
+      const doomed = { type: "STORM STRIKE", kind: "weather", targetIds: [struck.id], wasPaused: false };
+      state.weatherEmergency = doomed;
+      state.pendingEmergency = null;
+      failEmergency(`${struck.id} flew into the thunderstorm and crashed.`, doomed);
+      return;
+    }
     if (state.weather.condition === "THUNDERSTORM") {
       const endangered = state.aircraft.find(aircraftWeatherRisk);
       if (endangered) {
         const key = `weather:${Math.floor(state.simTime / 1500)}:${endangered.id}`;
-        if (!state.emergencyKeys.has(key) && findWeatherReroute(endangered)) {
+        if (!state.emergencyKeys.has(key)) {
           state.emergencyKeys.add(key);
           state.pendingEmergency = {
             type: "DANGEROUS STORM",
@@ -345,7 +362,7 @@
             targetIds: [endangered.id],
             reactionMs: reactionWindowMs(weatherImpactSeconds(endangered)),
             requiredCommand: `REROUTE ${endangered.id}`,
-            explanation: `${endangered.id} is projected to enter the storm area. Rerouting changes its flight path around the marked map hazard.`
+            explanation: `${endangered.id} is projected to enter the storm area. Respond now to disperse the storm before it reaches the aircraft.`
           };
           return;
         }
@@ -381,7 +398,7 @@
 
   function reactionWindowMs(secondsToImpact) {
     // The button must be pressed a little before the planes would actually meet.
-    return Math.round(Math.min(25, Math.max(3, secondsToImpact - 1.5)) * 1000);
+    return Math.round(Math.min(10, Math.max(5, secondsToImpact - 1.5)) * 1000);
   }
 
   function weatherImpactSeconds(plane) {
@@ -607,13 +624,22 @@
     state.emergencyAttempts += 1;
     state.commandConflictSnapshot = new Set(state.activeConflictKeys);
     state.lastCommand = command;
-    const result = parseCommand(command);
+    if (emergency.kind === "weather") {
+      if (String(command).trim().toUpperCase() !== emergency.requiredCommand) {
+        failEmergency("Wrong command. The aircraft crashed.");
+        return;
+      }
+      // A correct response breaks up the storm for the rest of this event.
+      state.stormStopped = Math.floor(state.simTime / HAZARD_PERIOD_SECONDS);
+      state.weather = { condition: "CLEAR", direction: 270, speed: 0, visibility: 10, warning: "No active weather advisories.", hazard: null };
+    }
+    const result = emergency.kind === "weather" ? { ok: true, message: "Storm dispersed." } : parseCommand(command);
     if (!result.ok) {
       failEmergency("Wrong command. The aircraft crashed.");
       return;
     }
 
-    commandResult(result);
+    if (emergency.kind !== "weather") commandResult(result);
     const resolved = emergency.kind === "weather"
       ? !emergency.targetIds.some((id) => {
           const plane = getPlane(id);
@@ -984,6 +1010,7 @@
 
   let workerBusy = false;
   let workerReadyAt = 0;
+  let workerWarned = false;
 
   function pointArmAt(element) {
     const arm = $("worker-arm");
@@ -1004,6 +1031,12 @@
         state.pendingEmergency || state.simTime < workerReadyAt) return;
     const plane = state.aircraft.find((item) => item.departure && item.stage === "gate");
     if (!plane || departureBlockReason(plane)) return;
+    if (emissionLevel() >= 60 || state.emissionDraining) {
+      if (!workerWarned) setMessage("WORKER: CO2 is high, holding off. Don't send planes yet.", "warning");
+      workerWarned = true;
+      return;
+    }
+    workerWarned = false;
     const runway = RUNWAYS.find((item) => runwayAvailable(plane, item.id));
     if (!runway) return;
     workerBusy = true;
@@ -1068,7 +1101,7 @@
       createDeparture(SHIFT_DEPARTURES[0]),
       createDeparture(SHIFT_DEPARTURES[1]),
       createDeparture(SHIFT_DEPARTURES[2]),
-      createArrival(SHIFT_ARRIVALS[0]),
+      createDeparture(SHIFT_DEPARTURES[5 % SHIFT_DEPARTURES.length]),
       createDeparture(SHIFT_DEPARTURES[3]),
       createDeparture(SHIFT_DEPARTURES[4])
     ];
@@ -1076,12 +1109,6 @@
     state.returning = [];
     workerReadyAt = 0;
     state.selectedRunway = null;
-    [3].forEach((index) => {
-      const inbound = state.aircraft[index];
-      inbound.stage = "approach";
-      inbound.cleared = true;
-      inbound.heading = bearing(inbound, currentTarget(inbound));
-    });
     state.selectedId = state.aircraft[0]?.id ?? null;
     state.simTime = 0;
     state.airportTime = 0;
@@ -1119,6 +1146,12 @@
     state.scheduledIndex = 0;
     state.runwaySelectionCursor = 0;
     state.nextTrafficAt = 12;
+    state.crossingSlot = 0;
+    state.slotEvents = {};
+    state.stormDanger = {};
+    state.fired = false;
+    state.stormStopped = null;
+    state.crossingCount = 0;
     state.reportOpen = false;
     state.weather = { condition: "CLEAR", direction: 270, speed: 0, visibility: 10, warning: "No active weather advisories." };
     state.weatherEmergency = null;
@@ -1175,7 +1208,14 @@
       state.emission = 100;
       state.score = Math.max(0, state.score - 100);
       $("shift-score").textContent = String(state.score);
-      showStrike("Too much CO₂ emission! −100 points.", "CO₂ PENALTY");
+      state.wrongResponses += 1;
+      $("mistake-count").textContent = `${state.wrongResponses} / ${MAX_WRONG_RESPONSES}`;
+      if (state.wrongResponses >= MAX_WRONG_RESPONSES) {
+        state.fired = true;
+        endShift(null, "You were fired for letting CO₂ emissions get too high. Space out your take-offs next time.");
+        return;
+      }
+      showStrike("Too much CO₂ emission! −100 points.", `ERRORS ${state.wrongResponses}/${MAX_WRONG_RESPONSES}`);
     } else if (state.emissionDraining && state.emission <= 0) {
       state.emissionDraining = false;
       state.emissionPenalized = false;
@@ -1282,6 +1322,15 @@
           continue;
         }
         if (!plane.cleared || plane.arrived || !["airborne", "approach"].includes(plane.stage)) continue;
+        if (plane.departure) {
+          plane.flightSeconds = (plane.flightSeconds || 0) + dt;
+          if (plane.flightSeconds >= FLIGHT_SECONDS) {
+            plane.arrived = true;
+            plane.cleared = false;
+            plane.stage = "arrived";
+            continue;
+          }
+        }
         const target = currentTarget(plane);
         if (!plane.departure && target?.name === `RUNWAY ${plane.runwayId}` && runwayPathBusy(plane)) {
           plane.stage = "holding";
@@ -1379,15 +1428,50 @@
     }
   }
 
+  function spawnCrossingTraffic() {
+    const slot = Math.floor(state.simTime / HAZARD_PERIOD_SECONDS);
+    if (slot < 1 || state.crossingSlot === slot || slotEvent(slot) !== "CONFLICT" || state.aircraft.length >= MAX_LOCAL_AIRCRAFT + 2 ||
+        state.pendingEmergency || state.weatherEmergency || state.conflicts.length) return;
+    const candidates = state.aircraft.filter((plane) => plane.departure && plane.stage === "airborne" &&
+      distance(plane, AIRPORT_POINT) > 1);
+    if (!candidates.length) return;
+    const target = candidates[Math.floor(Math.random() * candidates.length)];
+    const lead = 9;
+    const meet = futurePosition(target, lead);
+    const side = state.crossingCount % 2 === 0 ? 90 : -90;
+    const heading = (bearing(target, meet) + side + 360) % 360;
+    const speed = 430;
+    const perSecond = groundSpeedFor(heading, speed) / 3600;
+    const radians = heading * Math.PI / 180;
+    const start = { x: meet.x - Math.sin(radians) * perSecond * lead, y: meet.y - Math.cos(radians) * perSecond * lead };
+    const end = { x: meet.x + Math.sin(radians) * 10, y: meet.y + Math.cos(radians) * 10 };
+    if (Math.abs(meet.x) > 11 || Math.abs(meet.y) > 10) return;
+    state.crossingCount = (state.crossingCount ?? 0) + 1;
+    const plane = flight(`IN${800 + state.crossingCount}`, start.x, start.y, heading, meet.altitude, speed, "NORTH");
+    plane.route = [{ name: "EXIT", ...end }];
+    plane.routeIndex = 0;
+    plane.departure = false;
+    plane.cleared = true;
+    plane.altitude = meet.altitude;
+    plane.targetAltitude = meet.altitude;
+    plane.airline = "Pacific Link";
+    plane.origin = "CROSSING TRAFFIC";
+    plane.intruder = true;
+    plane.destinationName = "OVERFLIGHT EXIT";
+    state.aircraft.push(plane);
+    state.crossingSlot = slot;
+    setMessage(`${plane.id} is crossing ${target.id}'s path. Check the radar and reroute in time.`, "warning");
+    analyzeConflicts();
+  }
+
   function scheduleTraffic() {
     archiveCompletedFlights();
     handleGateTimers();
+    spawnCrossingTraffic();
     if ((state.simTime < state.nextTrafficAt && state.aircraft.length >= MIN_LOCAL_AIRCRAFT) || state.aircraft.length >= MAX_LOCAL_AIRCRAFT ||
         state.pendingEmergency || state.weatherEmergency || state.conflicts.length) return;
     const slot = state.scheduledIndex++;
-    const generated = slot % 2 === 0
-      ? createArrival(SHIFT_ARRIVALS[(slot / 2 + 1) % SHIFT_ARRIVALS.length])
-      : createDeparture(SHIFT_DEPARTURES[((slot - 1) / 2 + 5) % SHIFT_DEPARTURES.length]);
+    const generated = createDeparture(SHIFT_DEPARTURES[(slot + 5) % SHIFT_DEPARTURES.length]);
     generated.id = `${generated.departure ? "AC" : "IN"}${String(700 + slot).padStart(3, "0")}`;
     if (generated.template) generated.template = { ...generated.template, id: generated.id };
     state.aircraft.push(generated);
@@ -1607,7 +1691,7 @@
 
   function departureBlockReason(plane) {
     if (state.departuresPaused) return "Departures paused";
-    if (state.weather.condition === "THUNDERSTORM") {
+    if (state.weather.condition === "THUNDERSTORM" && state.weather.hazard) {
       return "Storm warning — departure restricted";
     }
     if (state.weather.visibility < 2) return "Low visibility — departure restricted";
@@ -2263,7 +2347,7 @@
         : plane);
       const nearby = state.aircraft.filter((other) => distance(plane, other) < 3);
       const labelOffset = gated ? 0 : (nearby.indexOf(plane) - (nearby.length - 1) / 2) * 14;
-      const conflict = state.conflicts.some((pair) => pair.first === plane || pair.second === plane);
+      const conflict = plane.intruder || state.conflicts.some((pair) => pair.first === plane || pair.second === plane);
       const selected = plane.id === state.selectedId;
       const icon = window.L.divIcon({
         className: "aircraft-map-icon",
@@ -2432,7 +2516,7 @@
     const totals = metrics();
     const grade = shiftGrade();
     const duration = formatClock(state.simTime);
-    $("results-kicker").textContent = state.won ? "SHIFT COMPLETE - YOU WIN" : "YOU FAILED";
+    $("results-kicker").textContent = state.won ? "SHIFT COMPLETE - YOU WIN" : state.fired ? "YOU'RE FIRED" : "YOU FAILED";
     $("results-title").textContent = "Current Shift Report";
     $("results-summary").textContent = state.endReason;
     $("results-grid").replaceChildren(
@@ -2459,7 +2543,7 @@
     $("pause-button").disabled = true;
     renderUI();
     $("failure-cutscene").classList.toggle("win", Boolean(state.won));
-    $("failure-cutscene-title").textContent = state.won ? "YOU WIN" : "YOU FAILED";
+    $("failure-cutscene-title").textContent = state.won ? "YOU WIN" : state.fired ? "YOU'RE FIRED" : "YOU FAILED";
     $("failure-cutscene-message").textContent = state.won
       ? state.endReason
       : `What happened: ${state.endReason} Final score ${state.score}.`;
