@@ -1368,3 +1368,47 @@ body .tower-desk .desk-mouse::before { content: ""; position: absolute; top: -10
 .failure-cutscene.win .failure-cutscene-frame > p { color: #6dff9a; text-shadow: 0 0 18px #3dff7a; }
 .failure-cutscene.win .failure-runway { display: none; }
 
+/* Bigger alert button, blinking light and centred popup */
+body .safety-banner { top: 10px; right: 10px; left: 10px; max-width: none; min-height: 64px; padding: 10px 16px; gap: 12px; border: 3px solid #ff5148; border-radius: 6px; font-size: 15px; font-weight: 700; cursor: pointer; z-index: 5; }
+body .safety-banner:disabled { cursor: default; }
+body .safety-banner.alert { animation: alert-blink .7s steps(2, start) infinite; }
+body .safety-banner .safety-icon { display: grid; place-items: center; width: 34px; height: 34px; flex: none; border-radius: 50%; background: #ff5148; color: #fff; font-size: 22px; }
+body .safety-banner .safety-body { display: flex; flex-direction: column; gap: 3px; flex: 1; min-width: 0; }
+body .safety-banner .safety-warn { display: none; font-size: 10px; letter-spacing: .5px; color: #ffd2cc; }
+body .safety-banner:not(:disabled) .safety-warn { display: block; }
+body .safety-banner .warning-action { padding: 8px 14px; border-radius: 4px; background: #ff5148; color: #fff; font-size: 16px; }
+body .safety-light { width: 18px; height: 18px; flex: none; border-radius: 50%; background: #ff2b1f; box-shadow: 0 0 14px 6px #ff2b1f; animation: light-blink .5s infinite alternate; }
+@keyframes alert-blink { 0%, 100% { background: #5a1f1f; } 50% { background: #8f2622; box-shadow: 0 0 22px #ff3b2a; } }
+@keyframes light-blink { to { opacity: .15; box-shadow: 0 0 2px 0 #ff2b1f; } }
+body .emergency-alert { position: fixed; top: 50% !important; left: 50% !important; right: auto !important; bottom: auto !important; transform: translate(-50%, -50%); width: min(680px, 92vw) !important; max-height: 90vh !important; padding: 22px 26px !important; z-index: 60; overflow: auto; box-shadow: 0 0 0 100vmax #000a, 0 0 30px #ff3b2a; }
+body .emergency-alert strong { font-size: 22px; }
+body .emergency-alert #emergency-clock { font-size: 26px; padding: 6px 12px; }
+body .emergency-alert > p { font-size: 16px; line-height: 1.5; }
+body .emergency-alert .emergency-instruction, body .emergency-alert label { font-size: 12px; }
+body .emergency-alert .emergency-footnote { font-size: 13px; color: #ffb4aa; }
+body .emergency-alert .emergency-choices button, body .emergency-alert .button { font-size: 16px; padding: 12px 16px; min-height: 48px; }
+body .emergency-alert input { font-size: 18px; min-height: 46px; }
+body .emergency-alert .emergency-ghost { font-size: 18px; }
+body .safety-banner { z-index: 1200; min-height: 78px; background-color: #5a1f1f; }
+body .safety-banner .safety-warn { white-space: normal; line-height: 1.25; }
+body .safety-banner .warning-action { white-space: nowrap; flex: none; }
+
+/* Emergency alarm lives on the desk below the monitors; popup is compact at the bottom */
+body .safety-banner { position: fixed; top: auto; right: auto; left: 9vw; bottom: 34px; width: 300px; max-width: 30vw; min-height: 64px; height: 64px; padding: 6px 10px; gap: 8px; z-index: 1200; border: 3px solid #2a2d33; border-radius: 6px; background: #050506; box-shadow: 0 6px 10px #0009, inset 0 0 8px #000; overflow: hidden; }
+body .safety-banner[hidden] { display: flex; animation: none; }
+body .safety-banner[hidden] > * { visibility: hidden; }
+body .safety-banner:not([hidden]) { border-color: #ff5148; box-shadow: 0 0 22px #ff3b2a, inset 0 0 8px #000; }
+body .safety-banner .safety-icon { display: none; }
+body .safety-banner .safety-light { width: 12px; height: 12px; box-shadow: 0 0 8px 3px #ff2b1f; }
+body .safety-banner #safety-text { font-size: 11px; }
+body .safety-banner .safety-warn { display: none !important; }
+body .safety-banner .warning-action { font-size: 13px; padding: 6px 8px; }
+body .safety-banner .safety-warn { font-size: 9px; }
+body .emergency-alert { top: 50% !important; bottom: auto !important; left: 50% !important; transform: translate(-50%, -50%); width: min(680px, 92vw) !important; max-height: 90vh !important; padding: 22px 26px !important; box-shadow: 0 0 0 100vmax #000a, 0 0 30px #ff3b2a; }
+body .emergency-alert strong { font-size: 22px; }
+body .emergency-alert #emergency-clock { font-size: 26px; padding: 6px 12px; }
+body .emergency-alert > p { font-size: 16px; line-height: 1.5; }
+body .emergency-alert .emergency-choices button, body .emergency-alert .button { font-size: 16px; padding: 12px 16px; min-height: 48px; }
+body .emergency-alert input { font-size: 18px; min-height: 46px; }
+body .emergency-alert .emergency-ghost { font-size: 18px; }
+body .safety-banner[hidden]::after { content: "SEARCHING FOR CONFLICTS..."; visibility: visible; margin: auto; color: #4d6b57; font: 11px/1 monospace; letter-spacing: 1px; animation: light-blink 1.4s infinite alternate; }
