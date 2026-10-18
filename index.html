@@ -1,12 +1,14 @@
-!doctype html>
+<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#081522">
-  <meta name="description" content="Tower Control is a simulated airport operations game with fictional flights, routing, weather, and conflict detection.">
-  <title>Tower Control — Airspace Training</title>
+  <meta name="description" content="Air Control is a browser-based tower-control game with moving aircraft in real Greater Toronto geography.">
+  <title>Air Control</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="anonymous">
   <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin="anonymous" defer></script>
   <script src="script.js" defer></script>
 </head>
 <body>
@@ -17,17 +19,11 @@
       <div class="window-mullion window-mullion-center"></div>
       <div class="window-mullion window-mullion-right"></div>
       <div class="window-crossbar"></div>
-      <span class="window-caption">FIELD VIEW · SIMULATED AIRPORT</span>
     </div>
     <div class="tower-side tower-side-left"></div>
     <div class="tower-side tower-side-right"></div>
   </div>
   <header class="topbar">
-    <a class="brand" href="#" aria-label="Tower Control Airspace Training">
-      <span class="brand-mark" aria-hidden="true">TC</span>
-      <span>TOWER CONTROL<small>SIMULATED AIRPORT OPERATIONS</small></span>
-    </a>
-    <div class="shift-status"><span>LIVE SHIFT</span><strong>Manage airport traffic and keep flights safely separated.</strong></div>
     <div class="score-counter" aria-live="polite"><span>SCORE</span><strong id="shift-score">0</strong></div>
     <label class="time-picker">VIEW
       <select id="time-of-day" aria-label="Airport lighting">
@@ -37,6 +33,7 @@
       </select>
     </label>
     <div class="header-actions">
+      <button class="button" id="open-learn" type="button">Learn</button>
       <button class="button" id="open-tutorial" type="button">Help</button>
       <button class="button" id="open-rules" type="button">Rules</button>
       <button class="button button-primary" id="pause-button" type="button" aria-pressed="false">Pause</button>
@@ -47,75 +44,100 @@
 
   <main class="tower-console" aria-label="Air traffic control tower workstation">
     <div class="monitor-bank">
-      <section class="monitor monitor-radar" aria-labelledby="radar-monitor-label">
-        <div class="monitor-label" id="radar-monitor-label"><span>01</span> SURVEILLANCE RADAR</div>
-        <div class="monitor-screen">
-    <section class="radar-card" aria-labelledby="radar-title" data-tutorial="radar">
-      <div class="radar-heading">
-        <div><p class="eyebrow">TRAINING SECTOR · ALL TRAFFIC SIMULATED</p><h1 id="radar-title">Airspace radar <span class="scope-live"><i></i> ACTIVE</span></h1></div>
-        <div class="radar-meta"><span>SIM <strong id="sim-clock">00:00</strong></span><label>RATE <select id="speed-select" aria-label="Simulation speed"><option value="15">15×</option><option value="30" selected>30×</option><option value="60">60×</option></select></label><label>RANGE <select id="radar-range" aria-label="Radar range"><option value="20">20 NM</option><option value="40" selected>40 NM</option><option value="60">60 NM</option></select></label></div>
-      </div>
-      <div class="radar-wrap">
-        <canvas id="radar" role="img" tabindex="0" aria-label="Synthetic aircraft radar with a labelled AIRPORT taxi point. Select aircraft symbols to inspect them."></canvas>
-        <span class="radar-compass compass-n">N</span><span class="radar-compass compass-e">E</span>
-        <span class="radar-compass compass-s">S</span><span class="radar-compass compass-w">W</span>
-        <span class="radar-range">10 NM</span>
-      </div>
-      <div class="radar-legend">
-        <span><i class="legend-plane"></i> Active flight</span>
-        <span><i class="legend-airport"></i> Airport taxi point</span>
-        <span><i class="legend-route"></i> Filed route</span>
-        <span><i class="legend-projection"></i> Predicted track</span>
-        <span><i class="legend-alert"></i> Conflict alert</span>
-        <span><i class="legend-selection"></i> Selected flight</span>
-      </div>
-      <div class="radar-lower">
-        <div class="safety-banner" id="safety-banner" aria-live="polite"><i class="safety-icon" aria-hidden="true">!</i><span id="safety-text">Scanning predicted separation…</span></div>
-        <div class="learning-tip" aria-live="polite"><span class="eyebrow">FLIGHT NOTE</span><p id="learning-tip">A heading is the direction an aircraft points, measured clockwise from north.</p></div>
-      </div>
-    </section>
+      <button class="shop-sign" id="shop-sign" type="button" aria-label="Open shop">SHOP</button>
+      <div class="monitor-stand monitor-stand-left" aria-hidden="true"><i class="neck"></i><i class="foot"></i></div>
+      <div class="monitor-stand monitor-stand-right" aria-hidden="true"><i class="neck"></i><i class="foot"></i></div>
+      <section class="map-monitor" aria-labelledby="map-title" data-tutorial="map">
+        <header class="map-header">
+          <div class="map-title">
+            <h1 id="map-title">AIR CONTROL <span class="scope-live"><i></i> ACTIVE</span></h1>
+          </div>
+          <div class="map-controls">
+            <span class="map-readout map-goal"><span>PLANES</span><strong id="goal-count">0/15</strong></span>
+            <span class="map-readout"><span>SIM</span><strong id="sim-clock">00:00</strong></span>
+            <span class="map-weather"><span>WEATHER</span><strong id="weather-condition">CLEAR</strong><small id="weather-warning">No active weather advisories.</small></span>
+            <div class="runway-status" id="runway-status" aria-label="Runway availability"></div>
+          </div>
+        </header>
+        <div class="map-canvas-wrap">
+          <div id="city-map" role="region" tabindex="0" aria-label="Interactive map of Toronto airspace with roads, waterways, buildings, Toronto Pearson Airport, and moving aircraft. Select an aircraft to inspect it."></div>
+          <p class="map-load-status" id="map-load-status" role="status" hidden></p>
+          <button class="safety-banner" id="safety-banner" type="button" aria-live="polite" hidden>
+            <span class="safety-icon" aria-hidden="true">!</span><span id="safety-text"></span><span class="warning-action">RESPOND</span>
+          </button>
+          <p class="map-credit">TORONTO METRO · © OPENSTREETMAP</p>
         </div>
       </section>
 
-      <section class="monitor monitor-operations" aria-labelledby="operations-monitor-label">
-        <div class="monitor-label" id="operations-monitor-label"><span>02</span> DEPARTURE CONTROL</div>
-        <div class="monitor-screen operations-screen">
-      <section class="panel traffic-panel" data-tutorial="traffic">
-        <div class="panel-heading"><div><p class="eyebrow">ACTIVE AIRCRAFT</p><h2>Flight list <span id="aircraft-count">0 / 4</span></h2></div><span class="threshold-tag">LOCAL TRAFFIC<br>MAX 4</span></div>
-        <div class="traffic-list" id="traffic-list" role="listbox" aria-label="Select aircraft"></div>
-        <div class="selected-detail" id="selected-detail" aria-live="polite"></div>
-      </section>
-
-      <section class="panel flight-actions-panel" data-tutorial="flight-actions">
-        <div class="panel-heading small-heading"><div><p class="eyebrow">FLIGHT CONTROL</p><h2>Selected aircraft</h2></div></div>
-        <div class="aircraft-actions" id="aircraft-actions" aria-label="Available actions for the selected aircraft"></div>
-        <p class="action-feedback" id="action-feedback" aria-live="polite">Select an aircraft, then choose an available action.</p>
-      </section>
-      <section class="weather-strip" aria-label="Simulated weather" data-tutorial="weather">
-      <div><span>WEATHER</span><strong id="weather-condition">CLEAR</strong></div>
-      <div><span>WIND</span><strong id="weather-wind">CALM</strong></div>
-      <div><span>VISIBILITY</span><strong id="weather-visibility">10 NM</strong></div>
-      <p id="weather-warning" aria-live="polite">No active weather advisories.</p>
-      </section>
-      <section class="panel sustainability-panel" data-tutorial="sustainability">
-        <div class="panel-heading small-heading"><div><p class="eyebrow">SUSTAINABILITY · ESTIMATES</p><h2>Today's operation</h2></div></div>
-        <div class="sustainability-mini">
-          <div><span>DISTANCE</span><strong id="total-distance">0.0 NM</strong></div>
-          <div><span>EST. FUEL</span><strong id="total-fuel">0 kg</strong></div>
-          <div><span>EST. CO₂</span><strong id="total-co2">0 kg</strong></div>
-        </div>
-        <div class="shift-metrics" id="shift-metrics"></div>
-        <p class="estimate-disclaimer">Simulated estimates only. Safety comes before shorter routes or lower emissions.</p>
-      </section>
-        </div>
-      </section>
+      <aside class="flight-monitor" aria-label="Flight monitor">
+        <section class="traffic-panel" data-tutorial="traffic">
+          <div class="panel-heading"><h2>Aircraft <span id="aircraft-count">0 / 4</span></h2></div>
+          <div class="traffic-list" id="traffic-list" role="listbox" aria-label="Aircraft"></div>
+        </section>
+        <section class="flight-actions-panel" data-tutorial="flight-actions">
+          <div class="selected-detail" id="selected-detail" aria-live="polite"></div>
+          <div class="aircraft-actions" id="aircraft-actions" aria-label="Selected aircraft action"></div>
+          <p class="action-feedback" id="action-feedback" aria-live="polite"></p>
+        </section>
+        <section class="runway-panel" aria-label="Runway selection">
+          <div class="panel-heading"><h2>Runways <span>PICK ONE, THEN TAKE OFF</span></h2></div>
+          <div class="runway-buttons" id="runway-buttons"></div>
+        </section>
+        <section class="sustainability-panel" data-tutorial="sustainability" aria-label="Estimated sustainability">
+          <div class="sustainability-heading"><h2>Shift impact</h2><span>SIMULATED ESTIMATES</span></div>
+          <div class="sustainability-mini">
+            <div><span>FUEL USED</span><strong id="total-fuel">0 kg</strong></div>
+            <div><span>CO₂ EST.</span><strong id="total-co2">0 kg</strong></div>
+          </div>
+          <p class="estimate-disclaimer">Estimated from distance flown; not measured consumption.</p>
+        </section>
+      </aside>
     </div>
     <div class="tower-desk" aria-hidden="true">
       <div class="desk-surface"></div>
       <div class="desk-front"></div>
+      <div class="desk-keyboard"></div>
       <div class="desk-mouse"></div>
     </div>
   </main>
+  <aside class="strike-toast" id="strike-toast" role="alert" hidden>
+    <strong id="strike-count">ERRORS 1/3</strong>
+    <span id="strike-text"></span>
+  </aside>
+  <dialog class="learn-dialog" id="learn-dialog" aria-label="Learn about aviation and sustainability">
+    <header class="shop-head"><strong>LEARN · HOW AIR TRAFFIC CONTROL WORKS</strong></header>
+    <div class="learn-grid">
+      <section><h3>✈ What is a controller?</h3><p>A controller keeps planes safe by telling them when to take off, where to fly and how far apart to stay.</p></section>
+      <section><h3>📡 What is radar?</h3><p>Radar bounces radio waves off planes to find where they are. Each dot on your screen is a real plane.</p></section>
+      <section><h3>🛫 Why runways wait</h3><p>A plane leaves wake turbulence behind it, so each runway must rest before the next take-off.</p></section>
+      <section><h3>⛈ Weather</h3><p>Storms, fog and crosswinds make flying risky. Controllers reroute planes around them.</p></section>
+      <section class="learn-green"><h3>🌱 Planes and the planet</h3><p>Aviation makes about 2.5% of the world's CO₂. Shorter routes burn less fuel, so every good shortcut helps.</p></section>
+      <section class="learn-green"><h3>♻ How to fly greener</h3><p>Direct routes, less waiting in the air, smooth descents, and newer fuel-saving planes all cut emissions.</p></section>
+    </div>
+    <p class="learn-live">THIS SHIFT: FUEL USED <b id="learn-fuel">0 kg</b> · CO₂ ESTIMATE <b id="learn-co2">0 kg</b> <small>(simulated)</small></p>
+    <button type="button" class="shop-close" id="learn-close">CLOSE</button>
+  </dialog>
+  <aside class="co2-meter" id="co2-meter" aria-label="Current CO2 emission">
+      <h2>CO₂ EMISSION</h2>
+      <div class="co2-bar"><div class="co2-fill" id="co2-fill"></div></div>
+      <strong id="co2-value">0%</strong>
+      <span id="co2-status">LOW</span>
+      <p class="co2-tip" id="co2-tip"></p>
+    </aside>
+    <div class="worker-arm" id="worker-arm" hidden aria-hidden="true"><span class="worker-hand">👆</span><span class="worker-sleeve"></span></div>
+  <dialog class="shop-dialog" id="shop-dialog" aria-label="Shop">
+    <header class="shop-head"><strong>SHOP</strong><span>BALANCE <b id="shop-money">$0</b></span></header>
+    <p class="shop-note">Every 10 score at the end of a shift = $1.</p>
+    <div class="shop-item">
+      <div><strong>LUXURY</strong><small>Turns the whole tower diamond, then gold, then rainbow. Each upgrade costs 1.5x more.</small><em id="shop-luxury-level"></em></div>
+      <button type="button" id="shop-luxury-buy"></button>
+    </div>
+    <div class="shop-item">
+      <div><strong>WORKER</strong><small>One-time hire. Automatically sends waiting planes to open runways, 20 second cooldown.</small><em id="shop-workers-level"></em></div>
+      <button type="button" id="shop-workers-buy"></button>
+    </div>
+    <button type="button" class="shop-close" id="shop-close">CLOSE</button>
+  </dialog>
 
   <dialog class="results-dialog" id="results-dialog" aria-labelledby="results-title">
     <div class="results-header"><div><p class="eyebrow" id="results-kicker">SHIFT SUMMARY</p><h2 id="results-title">Sector review</h2></div><button class="button button-small" id="close-results" type="button">Close</button></div>
@@ -126,23 +148,33 @@
     <button class="button button-primary" id="play-again" type="button">RESTART SHIFT</button>
   </dialog>
   <aside class="emergency-alert" id="emergency-alert" role="alertdialog" aria-modal="true" aria-labelledby="emergency-title" aria-describedby="emergency-message" hidden>
-    <div class="emergency-heading"><strong id="emergency-title">CRITICAL RESPONSE</strong><span id="emergency-clock">10</span></div>
+    <div class="emergency-heading"><strong id="emergency-title">CRITICAL RESPONSE</strong><span id="emergency-clock" role="timer" aria-live="polite">10s</span></div>
     <p id="emergency-message">Review the affected aircraft and the simulated danger area.</p>
-    <p class="emergency-instruction">TYPE THIS COMMAND</p>
-    <code id="emergency-required-command">HOLD AC102</code>
-    <form class="emergency-form" id="emergency-form">
-      <label for="emergency-command-input">Emergency command</label>
-      <input id="emergency-command-input" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-describedby="emergency-feedback">
-      <button class="button button-primary" type="submit">Submit command</button>
+    <div class="emergency-choices" id="emergency-choices" aria-label="Available emergency actions"></div>
+    <div class="emergency-mistakes">INCORRECT RESPONSES <strong id="mistake-count">0 / 3</strong></div>
+    <form class="emergency-command-form" id="emergency-command-form">
+      <label for="emergency-command">TYPE THE COMMAND OVER THE TEXT SHOWN</label>
+      <div class="emergency-command-row">
+        <div class="emergency-input-wrap"><span class="emergency-ghost" id="emergency-ghost" aria-hidden="true"></span><input id="emergency-command" type="text" maxlength="64" autocomplete="off" spellcheck="false" aria-describedby="emergency-command-help"></div>
+        <button class="button button-primary" id="emergency-submit" type="submit">SEND</button>
+      </div>
     </form>
+    <p class="emergency-command-help" id="emergency-command-help">Type the command shown. More than 3 wrong letters counts as BAD COMMUNICATION.</p>
     <p id="emergency-feedback" class="emergency-feedback" aria-live="polite"></p>
-    <p class="emergency-footnote">Traffic is paused while this 10-second real-time response window is open.</p>
+    <p class="emergency-footnote">Flight movement is paused; the real-time countdown continues.</p>
   </aside>
+  <div class="failure-cutscene" id="failure-cutscene" role="status" aria-live="assertive" hidden>
+    <div class="failure-cutscene-frame">
+      <p id="failure-cutscene-title">YOU FAILED</p>
+      <div class="failure-runway"><span class="failure-aircraft" aria-hidden="true"></span></div>
+      <strong id="failure-cutscene-message">Three incorrect emergency responses.</strong>
+    </div>
+  </div>
   <div class="tutorial-overlay" id="tutorial-overlay" hidden>
     <svg class="tutorial-connector" id="tutorial-connector" aria-hidden="true"><path id="tutorial-connector-path"></path></svg>
     <section class="tutorial-card" role="dialog" aria-modal="true" aria-labelledby="tutorial-title">
       <div class="tutorial-kicker" id="tutorial-progress">WELCOME</div>
-      <h2 id="tutorial-title">WELCOME TO TOWER CONTROL</h2>
+      <h2 id="tutorial-title">WELCOME TO AIR CONTROL</h2>
       <p id="tutorial-copy">Would you like a quick tutorial before starting?</p>
       <div class="tutorial-actions" id="tutorial-welcome-actions">
         <button class="button button-primary" id="tutorial-start" type="button">START TUTORIAL</button>
@@ -157,16 +189,16 @@
   </div>
   <dialog class="rules-dialog" id="rules-dialog" aria-labelledby="rules-title">
     <div class="results-header">
-      <div><p class="eyebrow">QUICK REFERENCE</p><h2 id="rules-title">Tower Control rules</h2></div>
+      <div><p class="eyebrow">QUICK REFERENCE</p><h2 id="rules-title">Air Control rules</h2></div>
       <button class="button button-small" id="close-rules" type="button">Close</button>
     </div>
     <ol class="rules-list">
       <li><strong>You are the controller.</strong> Select aircraft and manage them with the available flight-control buttons.</li>
-      <li><strong>Manage up to four local aircraft.</strong> Track their positions and statuses.</li>
-      <li><strong>You choose departures.</strong> Weather and runway demand are checked before a gate release; released aircraft taxi before using the runway.</li>
-      <li><strong>Watch the radar.</strong> Flights may conflict in the air or compete for the runway.</li>
+      <li><strong>Manage up to ten local aircraft.</strong> Track their positions and statuses as traffic enters about every 12 seconds (sooner if fewer than five are active).</li>
+      <li><strong>You choose departures.</strong> Select TAKE OFF to leave the airport and follow the assigned route; runways 09, 18, and 27 each cool down after use.</li>
+      <li><strong>Watch Toronto airspace.</strong> Track flights around Greater Toronto, Toronto Pearson, and nearby airports on a street map.</li>
       <li><strong>Ordinary conflicts are yours to assess.</strong> Inspect the traffic and choose a flight-control action.</li>
-      <li><strong>Critical emergencies pause traffic.</strong> Type the displayed response within ten real-time seconds. An incorrect command does not reset the timer.</li>
+      <li><strong>Critical emergencies pause traffic.</strong> Select the red map warning, then type the command shown over the faint text within ten seconds. Three incorrect or expired responses end the shift.</li>
       <li><strong>Weather changes the situation.</strong> Keep traffic clear of simulated hazards.</li>
       <li><strong>Collisions end the shift.</strong> Collision checks use simplified game rules.</li>
       <li><strong>Safety comes first.</strong> A shorter route is never worth a modeled conflict or hazard.</li>
