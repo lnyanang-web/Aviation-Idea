@@ -63,7 +63,7 @@
           <div id="city-map" role="region" tabindex="0" aria-label="Interactive map of Toronto airspace with roads, waterways, buildings, Toronto Pearson Airport, and moving aircraft. Select an aircraft to inspect it."></div>
           <p class="map-load-status" id="map-load-status" role="status" hidden></p>
           <button class="safety-banner" id="safety-banner" type="button" aria-live="polite" hidden>
-            <span class="safety-icon" aria-hidden="true">!</span><span id="safety-text"></span><span class="warning-action">RESPOND</span>
+            <span class="safety-light" aria-hidden="true"></span><span class="safety-icon" aria-hidden="true">!</span><span class="safety-body"><span id="safety-text"></span><span class="safety-warn">CLICK NOW OR THE PLANES CRASH AND YOU GET AN ERROR</span></span><span class="warning-action">RESPOND</span>
           </button>
           <p class="map-credit">TORONTO METRO · © OPENSTREETMAP</p>
         </div>
@@ -107,12 +107,12 @@
   <dialog class="learn-dialog" id="learn-dialog" aria-label="Learn about aviation and sustainability">
     <header class="shop-head"><strong>LEARN · HOW AIR TRAFFIC CONTROL WORKS</strong></header>
     <div class="learn-grid">
-      <section><h3>✈ What is a controller?</h3><p>A controller keeps planes safe by telling them when to take off, where to fly and how far apart to stay.</p></section>
-      <section><h3>📡 What is radar?</h3><p>Radar bounces radio waves off planes to find where they are. Each dot on your screen is a real plane.</p></section>
-      <section><h3>🛫 Why runways wait</h3><p>A plane leaves wake turbulence behind it, so each runway must rest before the next take-off.</p></section>
-      <section><h3>⛈ Weather</h3><p>Storms, fog and crosswinds make flying risky. Controllers reroute planes around them.</p></section>
-      <section class="learn-green"><h3>🌱 Planes and the planet</h3><p>Aviation makes about 2.5% of the world's CO₂. Shorter routes burn less fuel, so every good shortcut helps.</p></section>
-      <section class="learn-green"><h3>♻ How to fly greener</h3><p>Direct routes, less waiting in the air, smooth descents, and newer fuel-saving planes all cut emissions.</p></section>
+      <section><h3>What is a controller?</h3><p>A controller keeps planes safe by telling them when to take off, where to fly and how far apart to stay.</p></section>
+      <section><h3>What is radar?</h3><p>Radar bounces radio waves off planes to find where they are. Each dot on your screen is a real plane.</p></section>
+      <section><h3>Why runways wait</h3><p>A plane leaves wake turbulence behind it, so each runway must rest before the next take-off.</p></section>
+      <section><h3>Weather</h3><p>Storms and crosswinds make flying risky. Controllers reroute planes around them.</p></section>
+      <section class="learn-green"><h3>Planes and the planet</h3><p>Aviation makes about 2.5% of the world's CO₂. Shorter routes burn less fuel, so every good shortcut helps.</p></section>
+      <section class="learn-green"><h3>How to fly greener</h3><p>Direct routes, less waiting in the air, smooth descents, and newer fuel-saving planes all cut emissions.</p></section>
     </div>
     <p class="learn-live">THIS SHIFT: FUEL USED <b id="learn-fuel">0 kg</b> · CO₂ ESTIMATE <b id="learn-co2">0 kg</b> <small>(simulated)</small></p>
     <button type="button" class="shop-close" id="learn-close">CLOSE</button>
@@ -161,7 +161,7 @@
     </form>
     <p class="emergency-command-help" id="emergency-command-help">Type the command shown. More than 3 wrong letters counts as BAD COMMUNICATION.</p>
     <p id="emergency-feedback" class="emergency-feedback" aria-live="polite"></p>
-    <p class="emergency-footnote">Flight movement is paused; the real-time countdown continues.</p>
+    <p class="emergency-footnote">Flight movement is paused; the real-time countdown continues. If it reaches 0, or the command is wrong, the aircraft crash and you get an error.</p>
   </aside>
   <div class="failure-cutscene" id="failure-cutscene" role="status" aria-live="assertive" hidden>
     <div class="failure-cutscene-frame">
